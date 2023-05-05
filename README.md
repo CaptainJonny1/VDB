@@ -199,7 +199,7 @@ var v1 = vdb.Select<User>()
 var result = v1.GetData();
 ```
 |Method Name|Description|Parameter|Reusable times|
-|-|-|-|:-:|-|
+|-|-|-|:-:|
 |方法|说明|参数|可使用次数|
 |Avg|计算某个列的平均值。|Lambda表达式|∞|
 |Count|统计集合中的项目数。|Lambda表达式|∞|
