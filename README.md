@@ -174,6 +174,55 @@ var result = v1.GetData();
 |Min|Calculate the minimum value of a column.|Lambda expressions|∞|
 |Sum|Calculates the total value of a column.|Lambda expressions|∞|
 ## About Attribute For Model
+### Example of use
+```C#
+    /// <summary>
+    /// User
+    /// </summary>
+    [Table("user")]
+    public class User
+    {
+        [Column(Order = 0)]
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int Id { get; set; }
+
+        [Required]
+        [Description("Name")]
+        [Column("name", TypeName = "varchar(50)")]
+        public string? Name { get; set; }
+
+        [Description("Age")]
+        public int? Age { get; set; }
+
+        [Required]
+        [DefaultValue(0)]
+        [Description("ShowOrder")]
+        public int? ShowOrder { get; set; }
+
+        /// <summary>
+        /// UserType.
+        /// </summary>
+        public UserType? UserType { get; set; }
+
+        /// <summary>
+        /// OrderList
+        /// </summary>
+        public List<Order>? Orders { get; set; } = new List<Order>();
+
+        [Required]
+        [DefaultValue(0)]
+        [Description("IsDelete")]
+        public sbyte? IsDeleted { get; set; }
+
+        [Column(TypeName = "timestamp")]
+        [Required]
+        [DefaultValue("CURRENT_TIMESTAMP")]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        [Description("CreateTime")]
+        public DateTime? CreateTime { get; set; }
+    }
+```
 ### Table
 |Name|Description|Usage example|Namespace|
 |-|-|-|-|
