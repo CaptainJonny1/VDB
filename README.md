@@ -418,7 +418,7 @@ var v1 = vdb.Select<User>()
 var result = v1.GetData();
 ```
 |方法|说明|参数|可使用次数|
-|-|-|-|:-:|-|
+|-|-|-|:-:|
 |Avg|计算某个列的平均值。|Lambda表达式|∞|
 |Count|统计集合中的项目数。|Lambda表达式|∞|
 |Max|计算列的最大值。|Lambda表达式|∞|
@@ -477,11 +477,11 @@ var result = v1.GetData();
 ```
 ### 数据表
 |名称|说明|使用示例|命名空间|
-|-|-|-|-|-|
+|-|-|-|-|
 |Table|表示类将映射到的数据库表。|[Table("user_team")]|System.ComponentModel.DataAnnotations.Schema|
 ### 数据列
 |名称|说明|使用示例|命名空间|
-|-|-|-|-|-|
+|-|-|-|-|
 |Column|表示属性将映射到的数据库列。|[Column("id", Order = 0, TypeName = "int")]|System.ComponentModel.DataAnnotations.Schema|
 |Computed|在插入或更新一个行时，数据库会生成一个值。|[DatabaseGenerated(DatabaseGeneratedOption.Computed)]|System.ComponentModel.DataAnnotations.Schema|
 |Identity|在插入一个行时，数据库会生成一个值。|[DatabaseGenerated(DatabaseGeneratedOption.Identity)]|System.ComponentModel.DataAnnotations.Schema|
