@@ -133,9 +133,7 @@ var sel2 = vdb.Select<User>(u => new { u.Id, u.Name })
 |OrderBy|Lambda expressions|∞||
 |OrderByDesc|Lambda expressions|∞||
 |Page|int pageIndex, int pageSize|1|The total number of records can be obtained using the Total property.|
-##### About multi-table queries
-+ When one-to-many query, you can create a List<TSlave> collection of slave tables in the Model that maps the master table, and use LeftJoin.
-+ When one-to-one query, you can create a TSlave object of the slave table in the Model that maps the master table, and use RightJoin.
+
 ### Operators For Filter（Where Method）
 |Operator|Description|Usage example|
 |:-:|-|-|
@@ -159,7 +157,19 @@ var e2 = ExpressionTools.CreateExpression<User>(u => u.Age > 20);
 var exp = e1.And(e2);
 var v1 = vdb.Select<User>().Where(exp);
 ```
-### Agg
+### Agg Func
+```C#
+var v1 = vdb.Select<User>()
+.IF(u => u.IsDeleted == 0 ? "Not deleted" : "Deleted", "Deleted status")
+.IFNULL(u => u.Name ?? "Empty Name")
+var result = v1.GetData();
+```
+|Method Name|Description|Parameter|Reusable times|
+|-|-|-|:-:|
+|If|If the judgment condition is true, return the first value after "?", otherwise return the second value.|Lambda expressions, Temporary column name (nullable)|∞|
+|IfNull|If the judgment object is empty, return the value after "??".|Lambda expressions|∞|
+
+### Agg Func
 ```C#
 var v1 = vdb.Select<User>()
 .SUM(u => u.Age,)
@@ -384,9 +394,7 @@ var sel2 = vdb.Select<User>(u => new { u.Id, u.Name })
 |LeftJoin|左联合查询|Lambda表达式|∞|即使右表中没有匹配，也从左表返回所有的行。|
 |RightJoin|右联合查询|Lambda表达式|∞|即使左表中没有匹配，也从右表返回所有的行。|
 |FullOutJoin||Lambda表达式|∞|只要其中一个表中存在匹配，则返回行。|
-##### 关于多表查询
-+ 一对多查询时，可以在映射主表的Model中创建从表的List<TSlave>集合，并使用LeftJoin。
-+ 一对一查询时，可以在映射主表的Model中创建从表的TSlave对象，并使用RightJoin。
+
 #### 过滤器的运算符（Where 方法）
 |运算符|说明|使用示例|
 |:-:|-|-|
@@ -410,7 +418,19 @@ var e2 = ExpressionTools.CreateExpression<User>(u => u.Age > 20);
 var exp = e1.And(e2);
 var v1 = vdb.Select<User>().Where(exp);
 ```
-#### 聚合
+#### 条件函数
+```C#
+var v1 = vdb.Select<User>()
+.IF(u => u.IsDeleted == 0 ? "未删除" : "已删除", "删除状态")
+.IFNULL(u => u.Name ?? "空名字")
+var result = v1.GetData();
+```
+|方法|说明|参数|可使用次数|
+|-|-|-|:-:|
+|If|判断条件如果为真，则返回?后面的第一个值，否则返回第二个值。|Lambda表达式，临时列名（可选）|∞|
+|IfNull|判断对象如果为空，则返回??后面的值。|Lambda表达式|∞|
+
+#### 聚合函数
 ```C#
 var v1 = vdb.Select<User>()
 .Sum(u => u.Age,)
