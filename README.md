@@ -19,7 +19,7 @@ VDB vdb = new VDB(conn));
 ```
 ### Public Methods
 |Method Name|GetSQLString()|GetParams()|Execute()|GetData()|ExecuteScalar()|
-|-|-|:-:|:-:|:-:|:-:|:-:|
+|-|:-:|:-:|:-:|:-:|:-:|
 |CreateDatabase|✓|✓|✓|||
 |DropDatabase|✓|✓|✓|||
 |GetDatabaseTables|✓|✓||✓|✓|
