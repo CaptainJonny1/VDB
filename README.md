@@ -285,6 +285,7 @@ VDB vdb = new VDB(conn));
 
 |方法名称|说明|获取SQL语句|获取SQL语句的参数|执行数据操作命令|执行数据查询命令|执行标量查询命令|
 |-|-|:-:|:-:|:-:|:-:|:-:|
+|||GetSQLString()|GetParams()|Execute()|GetData()|ExecuteScalar()|
 |CreateDatabase|创建数据库|✓|✓|✓|||
 |DropDatabase|移除数据库|✓|✓|✓|||
 |GetDatabaseTables|获取数据库中的表信息|✓|✓||✓|✓|
