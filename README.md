@@ -31,6 +31,21 @@ VDB vdb = new VDB(conn));
 |Delete()|✓|✓|✓|||
 |Update()|✓|✓|✓|||
 |Select()|✓|✓||✓|✓|
+
+|Description||Get SQL statement|Get parameters of SQL statement|Execute data operation command|Execute data query command|Execute scalar query command|
+|-|-|:-:|:-:|:-:|:-:|:-:|
+||Method|GetSQLString()|GetParams()|Execute()|GetData()|ExecuteScalar()|
+|Create database|CreateDatabase()|✓|✓|✓|||
+|Remove database|DropDatabase()|✓|✓|✓|||
+|Get table information in the database|GetDatabaseTables()|✓|✓||✓|✓|
+|Create data table|CreateTable()|✓|✓|✓|||
+|Remove data table|DropTable()|✓|✓|✓|||
+|Clear data table|TruncateTable()|✓|✓|✓|✓|✓|
+|Get the data table structure|GetTableStructure()|✓|✓||||
+|Insert data|Insert()|✓|✓|✓|||
+|Delete data|Delete()|✓|✓|✓|||
+|Update data|Update()|✓|✓|✓|||
+|Query data|Select()|✓|✓||✓|✓|
 ### Insert
 ```C#
 //Insert data with Lambda expressions.
@@ -282,22 +297,20 @@ VDB vdb = new VDB(conn));
 ```
 
 ### 公共方法
-
-|方法|说明|获取SQL语句|获取SQL语句的参数|执行数据操作命令|执行数据查询命令|执行标量查询命令|
+|说明||获取SQL语句|获取SQL语句的参数|执行数据操作命令|执行数据查询命令|执行标量查询命令|
 |-|-|:-:|:-:|:-:|:-:|:-:|
-|||GetSQLString()|GetParams()|Execute()|GetData()|ExecuteScalar()|
-|CreateDatabase()|创建数据库|✓|✓|✓|||
-|DropDatabase()|移除数据库|✓|✓|✓|||
-|GetDatabaseTables()|获取数据库中的表信息|✓|✓||✓|✓|
-|CreateTable()|创建数据表|✓|✓|✓|||
-|DropTable()|移除数据表|✓|✓|✓|||
-|TruncateTable()|清空数据表|✓|✓|✓|✓|✓|
-|GetTableStructure()|获取数据表结构|✓|✓||||
-|Insert()|插入数据|✓|✓|✓|||
-|Delete()|删除数据|✓|✓|✓|||
-|Update()|更新数据|✓|✓|✓|||
-|Select()|查询数据|✓|✓||✓|✓|
-
+||方法|GetSQLString()|GetParams()|Execute()|GetData()|ExecuteScalar()|
+|创建数据库|CreateDatabase()|✓|✓|✓|||
+|移除数据库|DropDatabase()|✓|✓|✓|||
+|获取数据库中的表信息|GetDatabaseTables()|✓|✓||✓|✓|
+|创建数据表|CreateTable()|✓|✓|✓|||
+|移除数据表|DropTable()|✓|✓|✓|||
+|清空数据表|TruncateTable()|✓|✓|✓|✓|✓|
+|获取数据表结构|GetTableStructure()|✓|✓||||
+|插入数据|Insert()|✓|✓|✓|||
+|删除数据|Delete()|✓|✓|✓|||
+|更新数据|Update()|✓|✓|✓|||
+|查询数据|Select()|✓|✓||✓|✓|
 #### 插入
 ```C#
 //使用Lambda表达式插入数据。
