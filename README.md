@@ -185,6 +185,16 @@ var result = v1.GetData();
 |Min()|Calculate the minimum value of a column.|Lambda expressions|∞|
 |Sum()|Calculates the total value of a column.|Lambda expressions|∞|
 ## About Attribute For Model
++ Use the [Table] and [Column] tags on the class and attribute to map the specified data table and data column.
++ If no data table/data column name is specified, VDB will apply different naming rules to map class name -> data table name, attribute name -> data column name according to the mapped database brand.
+
+|Database Brand|Table Naming Rules|Table Name Example|Column Naming Rules|Column Name Example|
+|-|-|-|-|-|
+|MySQL|Lowercase words separated by underscores|UserSetting->\`user_setting\`|Lowercase words separated by underscores|UserId->\`user_id\`|
+|SQL Server|Pascal|UserSetting->[UserSetting]|Camel|UserId->[userId]|
+|SQLite|Pascal|UserSetting->[UserSetting]|Camel|UserId->[userId]|
+|Access|Pascal|UserSetting->[UserSetting]|Camel|UserId->[userId]|
+|Oracle|Capitalized words separated by underscores|UserSetting->"USER_SETTING"|Capitalized words separated by underscores|UserId->"USER_ID"|
 ### Example of use
 ```C#
     /// <summary>
@@ -445,6 +455,16 @@ var result = v1.GetData();
 |Sum()|计算列的合计值。|Lambda表达式|∞|
 
 ## 关于Model的属性
++ 在类和属性上分别使用[Table]和[Column]标签可以映射指定的数据表和数据列。
++ 在不指定数据表/数据列名称的情况下，VDB会根据映射的数据库品牌，应用不同的命名规则来映射类名->数据表名、属性名->数据列名。
+
+|数据库品牌|表命名规则|表名举例|列命名规则|列名举例|
+|-|-|-|-|-|
+|MySQL|小写字母与下划线|UserSetting->\`user_setting\`|小写字母与下划线|UserId->\`user_id\`|
+|SQL Server|Pascal|UserSetting->[UserSetting]|Camel|UserId->[userId]|
+|SQLite|Pascal|UserSetting->[UserSetting]|Camel|UserId->[userId]|
+|Access|Pascal|UserSetting->[UserSetting]|Camel|UserId->[userId]|
+|Oracle|大写字母与下划线|UserSetting->"USER_SETTING"|大写字母与下划线|UserId->"USER_ID"|
 ### 使用示例
 ```C#
     /// <summary>
