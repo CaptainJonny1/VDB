@@ -18,20 +18,6 @@ DbConnection conn = new SqlConnection("Server=XXX.XXX.XXX.XXX; Port=XXXX; Databa
 VDB vdb = new VDB(conn));
 ```
 ### Public Methods
-|Method|GetSQLString()|GetParams()|Execute()|GetData()|ExecuteScalar()|
-|-|:-:|:-:|:-:|:-:|:-:|
-|CreateDatabase()|✓|✓|✓|||
-|DropDatabase()|✓|✓|✓|||
-|GetDatabaseTables()|✓|✓||✓|✓|
-|CreateTable()|✓|✓|✓|||
-|DropTable()|✓|✓|✓|||
-|TruncateTable()|✓|✓|✓|✓|✓|
-|GetTableStructure()|✓|✓||||
-|Insert()|✓|✓|✓|||
-|Delete()|✓|✓|✓|||
-|Update()|✓|✓|✓|||
-|Select()|✓|✓||✓|✓|
-
 |Description||Get SQL statement|Get parameters of SQL statement|Execute data operation command|Execute data query command|Execute scalar query command|
 |-|-|:-:|:-:|:-:|:-:|:-:|
 ||Method|GetSQLString()|GetParams()|Execute()|GetData()|ExecuteScalar()|
