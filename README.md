@@ -18,19 +18,19 @@ DbConnection conn = new SqlConnection("Server=XXX.XXX.XXX.XXX; Port=XXXX; Databa
 VDB vdb = new VDB(conn));
 ```
 ### Public Methods
-|Method Name|GetSQLString()|GetParams()|Execute()|GetData()|ExecuteScalar()|
+|Method|GetSQLString()|GetParams()|Execute()|GetData()|ExecuteScalar()|
 |-|:-:|:-:|:-:|:-:|:-:|
-|CreateDatabase|✓|✓|✓|||
-|DropDatabase|✓|✓|✓|||
-|GetDatabaseTables|✓|✓||✓|✓|
-|CreateTable|✓|✓|✓|||
-|DropTable|✓|✓|✓|||
-|TruncateTable|✓|✓|✓|✓|✓|
-|GetTableStructure|✓|✓||||
-|Insert|✓|✓|✓|||
-|Delete|✓|✓|✓|||
-|Update|✓|✓|✓|||
-|Select|✓|✓||✓|✓|
+|CreateDatabase()|✓|✓|✓|||
+|DropDatabase()|✓|✓|✓|||
+|GetDatabaseTables()|✓|✓||✓|✓|
+|CreateTable()|✓|✓|✓|||
+|DropTable()|✓|✓|✓|||
+|TruncateTable()|✓|✓|✓|✓|✓|
+|GetTableStructure()|✓|✓||||
+|Insert()|✓|✓|✓|||
+|Delete()|✓|✓|✓|||
+|Update()|✓|✓|✓|||
+|Select()|✓|✓||✓|✓|
 ### Insert
 ```C#
 //Insert data with Lambda expressions.
@@ -121,18 +121,18 @@ var sel2 = vdb.Select<User>(u => new { u.Id, u.Name })
     .OrderBy(u => u.Age)
     .Page(1, 10);
 ```
-|Method Name|Parameter|Reusable times|Remark|
+|Method|Parameter|Reusable times|Remark|
 |-|-|:-:|-|
-|InnerJoin|Lambda expressions|∞|selects records that have matching values in both tables.|
-|LeftJoin|Lambda expressions|∞|returns all records from the left table (table1), and the matching records from the right table (table2). The result is 0 records from the right side, if there is no match.|
-|RightJoin|Lambda expressions|∞|returns all records from the right table (table2), and the matching records from the left table (table1). The result is 0 records from the left side, if there is no match.|
-|FullOutJoin|Lambda expressions|∞|returns all records when there is a match in left (table1) or right (table2) table records.|
-|Where|Lambda expressions|∞|When used multiple times, the filter condition relationship between methods is And.|
-|WhereByBase|Lambda expressions|∞|When the type used for filtering is uncertain and common attributes are required (for example, when it is agreed that each class has an Id). WhereByBase<TClass, TBase> The two type parameters are required.|
-|GroupBy|Lambda expressions|∞|groups rows that have the same values into summary rows, like "find the number of customers in each country".|
-|OrderBy|Lambda expressions|∞||
-|OrderByDesc|Lambda expressions|∞||
-|Page|int pageIndex, int pageSize|1|The total number of records can be obtained using the Total property.|
+|Where()|Lambda expressions|∞|When used multiple times, the filter condition relationship between methods is And.|
+|WhereByBase()|Lambda expressions|∞|When the type used for filtering is uncertain and common attributes are required (for example, when it is agreed that each class has an Id). WhereByBase<TClass, TBase> The two type parameters are required.|
+|GroupBy()|Lambda expressions|∞|groups rows that have the same values into summary rows, like "find the number of customers in each country".|
+|OrderBy()|Lambda expressions|∞||
+|OrderByDesc()|Lambda expressions|∞||
+|InnerJoin()|Lambda expressions|∞|selects records that have matching values in both tables.|
+|LeftJoin()|Lambda expressions|∞|returns all records from the left table (table1), and the matching records from the right table (table2). The result is 0 records from the right side, if there is no match.|
+|RightJoin()|Lambda expressions|∞|returns all records from the right table (table2), and the matching records from the left table (table1). The result is 0 records from the left side, if there is no match.|
+|FullOutJoin()|Lambda expressions|∞|returns all records when there is a match in left (table1) or right (table2) table records.|
+|Page()|int pageIndex, int pageSize|1|The total number of records can be obtained using the "Count" property.|
 
 ### Operators For Filter（Where Method）
 |Operator|Description|Usage example|
@@ -164,10 +164,10 @@ var v1 = vdb.Select<User>()
 .IFNULL(u => u.Name ?? "Empty Name")
 var result = v1.GetData();
 ```
-|Method Name|Description|Parameter|Reusable times|
+|Method|Description|Parameter|Reusable times|
 |-|-|-|:-:|
-|If|If the judgment condition is true, return the first value after "?", otherwise return the second value.|Lambda expressions, Temporary column name (nullable)|∞|
-|IfNull|If the judgment object is empty, return the value after "??".|Lambda expressions|∞|
+|If()|If the judgment condition is true, return the first value after "?", otherwise return the second value.|Lambda expressions, Temporary column name (nullable)|∞|
+|IfNull()|If the judgment object is empty, return the value after "??".|Lambda expressions|∞|
 
 ### Agg Func
 ```C#
@@ -176,13 +176,13 @@ var v1 = vdb.Select<User>()
 .COUNT(u => u.IsDeleted == 0)
 var result = v1.GetData();
 ```
-|Method Name|Description|Parameter|Reusable times|
+|Method|Description|Parameter|Reusable times|
 |-|-|-|:-:|
-|Avg|Calculates the average of a column.|Lambda expressions|∞|
+|Avg()|Calculates the average of a column.|Lambda expressions|∞|
 |Count|Counts the number of items in the collection.|Lambda expressions|∞|
-|Max|Calculates the maximum value of a column.|Lambda expressions|∞|
-|Min|Calculate the minimum value of a column.|Lambda expressions|∞|
-|Sum|Calculates the total value of a column.|Lambda expressions|∞|
+|Max()|Calculates the maximum value of a column.|Lambda expressions|∞|
+|Min()|Calculate the minimum value of a column.|Lambda expressions|∞|
+|Sum()|Calculates the total value of a column.|Lambda expressions|∞|
 ## About Attribute For Model
 ### Example of use
 ```C#
@@ -283,20 +283,20 @@ VDB vdb = new VDB(conn));
 
 ### 公共方法
 
-|方法名称|说明|获取SQL语句|获取SQL语句的参数|执行数据操作命令|执行数据查询命令|执行标量查询命令|
+|方法|说明|获取SQL语句|获取SQL语句的参数|执行数据操作命令|执行数据查询命令|执行标量查询命令|
 |-|-|:-:|:-:|:-:|:-:|:-:|
 |||GetSQLString()|GetParams()|Execute()|GetData()|ExecuteScalar()|
-|CreateDatabase|创建数据库|✓|✓|✓|||
-|DropDatabase|移除数据库|✓|✓|✓|||
-|GetDatabaseTables|获取数据库中的表信息|✓|✓||✓|✓|
-|CreateTable|创建数据表|✓|✓|✓|||
-|DropTable|移除数据表|✓|✓|✓|||
-|TruncateTable|清空数据表|✓|✓|✓|✓|✓|
-|GetTableStructure|获取数据表结构|✓|✓||||
-|Insert|插入数据|✓|✓|✓|||
-|Delete|删除数据|✓|✓|✓|||
-|Update|更新数据|✓|✓|✓|||
-|Select|查询数据|✓|✓||✓|✓|
+|CreateDatabase()|创建数据库|✓|✓|✓|||
+|DropDatabase()|移除数据库|✓|✓|✓|||
+|GetDatabaseTables()|获取数据库中的表信息|✓|✓||✓|✓|
+|CreateTable()|创建数据表|✓|✓|✓|||
+|DropTable()|移除数据表|✓|✓|✓|||
+|TruncateTable()|清空数据表|✓|✓|✓|✓|✓|
+|GetTableStructure()|获取数据表结构|✓|✓||||
+|Insert()|插入数据|✓|✓|✓|||
+|Delete()|删除数据|✓|✓|✓|||
+|Update()|更新数据|✓|✓|✓|||
+|Select()|查询数据|✓|✓||✓|✓|
 
 #### 插入
 ```C#
@@ -385,17 +385,16 @@ var sel2 = vdb.Select<User>(u => new { u.Id, u.Name })
 ```
 |方法|说明|参数|可使用次数|备注|
 |-|-|-|:-:|-|
-|Where|通过属性进行筛选|Lambda表达式|∞|多次使用时，方法之间的筛选条件关系是And。|
-|WhereByBase|通过基类的属性进行筛选|Lambda表达式|∞|用于筛选的类型不确定，又需要使用通用属性（例如约定每个类都有Id）的时候。WhereByBase<TClass, TBase>两个类型参数为必填。|
-|GroupBy|分组|Lambda表达式|∞||
-|OrderBy|升序排序|Lambda表达式|∞||
-|OrderByDesc|降序排序|Lambda表达式|∞||
-|Page|筛选结果的分页|int pageIndex, int pageSize|1|引用Total属性获得记录总数。|
-|InnerJoin|联合查询|Lambda表达式|∞|如果表中有至少一个匹配，则返回行。|
-|LeftJoin|左联合查询|Lambda表达式|∞|即使右表中没有匹配，也从左表返回所有的行。|
-|RightJoin|右联合查询|Lambda表达式|∞|即使左表中没有匹配，也从右表返回所有的行。|
-|FullOutJoin||Lambda表达式|∞|只要其中一个表中存在匹配，则返回行。|
-
+|Where()|通过属性进行筛选|Lambda表达式|∞|多次使用时，方法之间的筛选条件关系是And。|
+|WhereByBase()|通过基类的属性进行筛选|Lambda表达式|∞|用于筛选的类型不确定，又需要使用通用属性（例如约定每个类都有Id）的时候。WhereByBase<TClass, TBase>两个类型参数为必填。|
+|GroupBy()|分组|Lambda表达式|∞||
+|OrderBy()|升序排序|Lambda表达式|∞||
+|OrderByDesc()|降序排序|Lambda表达式|∞||
+|InnerJoin()|联合查询|Lambda表达式|∞|如果表中有至少一个匹配，则返回行。|
+|LeftJoin()|左联合查询|Lambda表达式|∞|即使右表中没有匹配，也从左表返回所有的行。|
+|RightJoin()|右联合查询|Lambda表达式|∞|即使左表中没有匹配，也从右表返回所有的行。|
+|FullOutJoin()||Lambda表达式|∞|只要其中一个表中存在匹配，则返回行。|
+|Page()|筛选结果的分页|int pageIndex, int pageSize|1|引用"Count"属性获得记录总数。|
 #### 过滤器的运算符（Where 方法）
 |运算符|说明|使用示例|
 |:-:|-|-|
@@ -428,8 +427,8 @@ var result = v1.GetData();
 ```
 |方法|说明|参数|可使用次数|
 |-|-|-|:-:|
-|If|判断条件如果为真，则返回?后面的第一个值，否则返回第二个值。|Lambda表达式，临时列名（可选）|∞|
-|IfNull|判断对象如果为空，则返回??后面的值。|Lambda表达式|∞|
+|If()|判断条件如果为真，则返回?后面的第一个值，否则返回第二个值。|Lambda表达式，临时列名（可选）|∞|
+|IfNull()|判断对象如果为空，则返回??后面的值。|Lambda表达式|∞|
 
 #### 聚合函数
 ```C#
@@ -440,11 +439,11 @@ var result = v1.GetData();
 ```
 |方法|说明|参数|可使用次数|
 |-|-|-|:-:|
-|Avg|计算某个列的平均值。|Lambda表达式|∞|
-|Count|统计集合中的项目数。|Lambda表达式|∞|
-|Max|计算列的最大值。|Lambda表达式|∞|
-|Min|计算列的最小值。|Lambda表达式|∞|
-|Sum|计算列的合计值。|Lambda表达式|∞|
+|Avg()|计算某个列的平均值。|Lambda表达式|∞|
+|Count()|统计集合中的项目数。|Lambda表达式|∞|
+|Max()|计算列的最大值。|Lambda表达式|∞|
+|Min()|计算列的最小值。|Lambda表达式|∞|
+|Sum()|计算列的合计值。|Lambda表达式|∞|
 
 ## 关于Model的属性
 ### 使用示例
