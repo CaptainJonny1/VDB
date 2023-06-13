@@ -114,6 +114,7 @@ var sel1 = vdb.Select<User>()
     .OrderBy(u => u.Id)
     .OrderBy(u => u.Age)
     .Page(1, 10);
+var items = sel1.GetData();
 
 //Get the specified fields
 var sel2 = vdb.Select<User>(u => new { u.Id, u.Name })
@@ -121,7 +122,21 @@ var sel2 = vdb.Select<User>(u => new { u.Id, u.Name })
     .OrderByDesc(u => u.Id)
     .OrderBy(u => u.Age)
     .Page(1, 10);
+var items = sel1.GetData();
+
+//Multi-table query
+var sel1 = vdb.Select<User, Order>((u, o) => new { u.Id, u.Name, o.Amount, o.CreateTime })
+    .LeftJoin((u, o) => u.Id == o.UserId)
+    .Where((u, o) => u.Name == "Happy")
+    .OrderBy((u, o) => u.Id)
+    .OrderBy((u, o) => u.Age)
+    .Page(1, 10);
+var items = sel1.GetData();
 ```
++ Support multi-level master-slave table query, support one-to-many, many-to-one, one-to-one query, and support a maximum of 16 tables at a time.
++ Multi-table queries must have a Join statement, and the parameters in the Join statement have no order requirements.
++ The multi-table query always returns the set of the first formal parameter, so in order to return the result correctly, the Property of the model class whose type is the sub-table mapping should be added to the model class mapped by the main table, Property can be a single model or a generic collection of List\<sub-table models>.
+
 |Method|Parameter|Reusable times|Remark|
 |-|-|:-:|-|
 |Where()|Lambda expressions|∞|When used multiple times, the filter condition relationship between methods is And.|
@@ -184,7 +199,7 @@ var result = v1.GetData();
 |Max()|Calculates the maximum value of a column.|Lambda expressions|∞|
 |Min()|Calculate the minimum value of a column.|Lambda expressions|∞|
 |Sum()|Calculates the total value of a column.|Lambda expressions|∞|
-## About Attribute For Model
+### About Attribute For Model
 + Use the [Table] and [Column] tags on the class and attribute to map the specified data table and data column.
 + If no data table/data column name is specified, VDB will apply different naming rules to map class name -> data table name, attribute name -> data column name according to the mapped database brand.
 
@@ -195,7 +210,7 @@ var result = v1.GetData();
 |SQLite|Pascal|UserSetting->[UserSetting]|Camel|UserId->[userId]|
 |Access|Pascal|UserSetting->[UserSetting]|Camel|UserId->[userId]|
 |Oracle|Capitalized words separated by underscores|UserSetting->"USER_SETTING"|Capitalized words separated by underscores|UserId->"USER_ID"|
-### Example of use
+#### Example of use
 ```C#
     /// <summary>
     /// User
@@ -244,11 +259,11 @@ var result = v1.GetData();
         public DateTime? CreateTime { get; set; }
     }
 ```
-### Table
+#### Table
 |Name|Description|Usage example|Namespace|
 |-|-|-|-|
 |Table|Indicates the database table to which the class will be mapped.|[Table("user_team")]|System.ComponentModel.DataAnnotations.Schema|
-### Column
+#### Column
 |Name|Description|Usage example|Namespace|
 |-|-|-|-|
 |Column|Indicates the database column to which the attribute will be mapped.|[Column("id", Order = 0, TypeName = "int")]|System.ComponentModel.DataAnnotations.Schema|
@@ -260,7 +275,7 @@ var result = v1.GetData();
 |Required|Specifying a data field value is required.|[Required]|System.ComponentModel.DataAnnotations|
 |DefaultValue|Specifies the default value for the property.|[DefaultValue("CURRENT_TIMESTAMP")]|System.ComponentModel|
 |Description|Specifies a description for the property or event.|[Description("name")]|System.ComponentModel|
-### Description
+#### Description
 1. An int attribute with Key and Identity tags, and the mapped data column is an auto-growth column.
 1. The fields identified by Key and Required are required and do not need to be set repeatedly.
 1. The Identity label (automatic growth) is only valid for int type columns. After the DefaultValue is set for non-int type columns, the Identity label will be ignored.
@@ -272,6 +287,27 @@ var result = v1.GetData();
 1. It is recommended to set the int type attribute (mostly seen in the Id field) to the self-growth (Identity tag) as the nullable type "int?", otherwise the field with a value of 0 will be included in the SQL insertion content, but it can be executed successfully .
 1. When inserting in batches, the attributes mapped to mandatory fields with default values must be set or not set at all. Because there is an object in the set of parameters with this field set, this field will appear in the SQL statement, and other records without this field cannot be executed successfully due to lack of parameters.
 
+### DBFirst
+```C#
+var result = vdb.GenerateCode(
+    new TableModel(typeof(User)),
+    codeType: CodeType.Model,
+    nameSpace: "MyProject",
+    toFile: true,
+    language: ProgrammingLanguage.CSharp,
+    baseTypes: new string[] { "BaseModel" },
+    ignoredColumns: new string[] { "id" });
+```
++ You can use the VDB.GenerateCode() method to generate codes according to the structure of the data table.
++ Support specifying programming languages such as C# and Visual Basic.
++ Support for generating data model classes and service interfaces.
++ Support specifying the data table to be mapped, or you can ignore this parameter and scan all data tables to create all data models.
++ Support to obtain the code in text form, and also allow the code to be automatically saved to the project folder (Models\IServices).
++ Support specifying namespace name.
++ Support adding inherited base classes, or implemented interfaces.
++ Support specifying data columns that need to be ignored.
+
+## Contact Us
 ***If you encounter problems or make suggestions during use, you can contact us at email:cnxl@hotmail.com, and we will reply as soon as possible.***
 
 # 中文
@@ -307,7 +343,7 @@ VDB vdb = new VDB(conn));
 |删除数据|Delete()|✓|✓|✓|||
 |更新数据|Update()|✓|✓|✓|||
 |查询数据|Select()|✓|✓||✓|✓|
-#### 插入
+### 插入
 ```C#
 //使用Lambda表达式插入数据。
 var ins1 = vdb.Insert<User>(u => new User { Name = "张三", Age = 30 });
@@ -333,7 +369,7 @@ var ins3 = vdb.Insert<User>(new List<User>
 + 插入一条记录时返回自增主键值。如果主键不是自增长，返回0。插入多条记录时返回影响行数。
 + 可空的属性将插入空值，不可空属性将插入默认值。
 
-#### 更新
+### 更新
 ```C#
 //用Lambda表达式更新数据。
 var upd1 = vdb.Update<User>(u => new User { Id = 1, Name = "王五", Age = 50 });
@@ -353,7 +389,7 @@ var upd4 = vdb.Update<User>(new { Name = "周八", Age = 80 }).Where(u => u.Name
 + 匿名对象参数中与“TClass”中同名的属性，如果带有“DatabaseGeneratedOption.Computed”标签将不会出现在生成的SQL语句中。
 + 匿名对象的列中未包括主键字段，也没有使用Where语句进行更新筛选时，为了数据安全更新操作将不会被执行。
 
-#### 删除
+### 删除
 ```C#
 //用Lambda表达式删除数据。
 var del1 = vdb.Delete<User>(u => new User { Id = 1 });
@@ -376,7 +412,7 @@ var del5 = vdb.Delete<User>(new User { Id = 1 }).Where(u => u.Name == "周八");
 + 当有参数，也使用Where语句进行更新筛选时，筛选条件将进行AND合并。
 + 当无参数，也没有使用Where语句进行更新筛选时，为了数据安全更新操作将不会被执行。
 
-#### 查询
+### 查询
 ```C#
 //获取全部字段
 var sel1 = vdb.Select<User>()
@@ -384,6 +420,7 @@ var sel1 = vdb.Select<User>()
     .OrderBy(u => u.Id)
     .OrderBy(u => u.Age)
     .Page(1, 10);
+var items = sel1.GetData();
 
 //获取指定字段
 var sel2 = vdb.Select<User>(u => new { u.Id, u.Name })
@@ -391,7 +428,21 @@ var sel2 = vdb.Select<User>(u => new { u.Id, u.Name })
     .OrderByDesc(u => u.Id)
     .OrderBy(u => u.Age)
     .Page(1, 10);
+var items = sel1.GetData();
+
+//多表查询
+var sel1 = vdb.Select<User, Order>((u, o) => new { u.Id, u.Name, o.Amount, o.CreateTime })
+    .LeftJoin((u, o) => u.Id == o.UserId)
+    .Where((u, o) => u.Name == "张三")
+    .OrderBy((u, o) => u.Id)
+    .OrderBy((u, o) => u.Age)
+    .Page(1, 10);
+var items = sel1.GetData();
 ```
++ 支持多级主从表查询，支持一对多、多对一、一对一查询，最大可支持一次查询16个表。
++ 多表查询必须要有Join语句，Join语句中的参数无顺序的要求。
++ 多表查询总是返回第一个形参的集合，所以为了正确返回结果，应在主表映射的模型类中增加类型为子表映射的模型类的属性，属性可以是单一模型或是List<子表模型>的泛型集合。
+
 |方法|说明|参数|可使用次数|备注|
 |-|-|-|:-:|-|
 |Where()|通过属性进行筛选|Lambda表达式|∞|多次使用时，方法之间的筛选条件关系是And。|
@@ -404,7 +455,7 @@ var sel2 = vdb.Select<User>(u => new { u.Id, u.Name })
 |RightJoin()|右联合查询|Lambda表达式|∞|即使左表中没有匹配，也从右表返回所有的行。|
 |FullOutJoin()||Lambda表达式|∞|只要其中一个表中存在匹配，则返回行。|
 |Page()|筛选结果的分页|int pageIndex, int pageSize|1|引用"Count"属性获得记录总数。|
-#### 过滤器的运算符（Where 方法）
+### 过滤器的运算符（Where 方法）
 |运算符|说明|使用示例|
 |:-:|-|-|
 |==||u.Name == "张三"|
@@ -427,7 +478,7 @@ var e2 = ExpressionTools.CreateExpression<User>(u => u.Age > 20);
 var exp = e1.And(e2);
 var v1 = vdb.Select<User>().Where(exp);
 ```
-#### 条件函数
+### 条件函数
 ```C#
 var v1 = vdb.Select<User>()
 .IF(u => u.IsDeleted == 0 ? "未删除" : "已删除", "删除状态")
@@ -439,7 +490,7 @@ var result = v1.GetData();
 |If()|判断条件如果为真，则返回?后面的第一个值，否则返回第二个值。|Lambda表达式，临时列名（可选）|∞|
 |IfNull()|判断对象如果为空，则返回??后面的值。|Lambda表达式|∞|
 
-#### 聚合函数
+### 聚合函数
 ```C#
 var v1 = vdb.Select<User>()
 .Sum(u => u.Age,)
@@ -454,7 +505,7 @@ var result = v1.GetData();
 |Min()|计算列的最小值。|Lambda表达式|∞|
 |Sum()|计算列的合计值。|Lambda表达式|∞|
 
-## 关于Model的属性
+### 关于Model的属性
 + 在类和属性上分别使用[Table]和[Column]标签可以映射指定的数据表和数据列。
 + 在不指定数据表/数据列名称的情况下，VDB会根据映射的数据库品牌，应用不同的命名规则来映射类名->数据表名、属性名->数据列名。
 
@@ -465,7 +516,7 @@ var result = v1.GetData();
 |SQLite|Pascal|UserSetting->[UserSetting]|Camel|UserId->[userId]|
 |Access|Pascal|UserSetting->[UserSetting]|Camel|UserId->[userId]|
 |Oracle|大写字母与下划线|UserSetting->"USER_SETTING"|大写字母与下划线|UserId->"USER_ID"|
-### 使用示例
+#### 使用示例
 ```C#
     /// <summary>
     /// 用户
@@ -514,11 +565,11 @@ var result = v1.GetData();
         public DateTime? CreateTime { get; set; }
     }
 ```
-### 数据表
+#### 数据表
 |名称|说明|使用示例|命名空间|
 |-|-|-|-|
 |Table|表示类将映射到的数据库表。|[Table("user_team")]|System.ComponentModel.DataAnnotations.Schema|
-### 数据列
+#### 数据列
 |名称|说明|使用示例|命名空间|
 |-|-|-|-|
 |Column|表示属性将映射到的数据库列。|[Column("id", Order = 0, TypeName = "int")]|System.ComponentModel.DataAnnotations.Schema|
@@ -530,7 +581,7 @@ var result = v1.GetData();
 |Required|指定数据字段值是必需的。|[Required]|System.ComponentModel.DataAnnotations|
 |DefaultValue|指定属性的默认值。|[DefaultValue("CURRENT_TIMESTAMP")]|System.ComponentModel|
 |Description|指定属性或事件的说明。|[Description("name")]|System.ComponentModel|
-### 说明
+#### 说明
 1. 设置了Key和Identity标签的int型属性，映射的数据列是自动增长列。
 1. Key、Required标识的字段均为必填，无需对同一个属性重复设置这两个特性。
 1. Identity标签（自动增长）只对int类型的列生效，非int类型列设置DefaultValue后，将忽略Identity标签。
@@ -541,5 +592,25 @@ var result = v1.GetData();
 1. 在使用对象实例插入记录时，如果没有设置映射为时间戳类型字段的属性的值，会由于自动生成了最小时间而无法执行。解决方法1.将属性设置为可空类型。2.时间戳改为时间类型。3.设置该字段映射的属性值在时间戳允许的范围内。
 1. 设置为自增长（Identity标签）的int类型的属性（多见于Id字段）建议设置为可空类型“int？”，否则会在sql插入内容中包括值为0的该字段，但是可以执行成功。
 1. 批量插入时，有默认值的必填字段映射的属性要全部设置或全部不设置数值。因为参数的集合中有一个对象设置了该字段，就会在SQL语句中出现该字段，其他未设置该字段的记录则因缺少参数而不能执行成功。
+### DBFirst
+```C#
+var result = vdb.GenerateCode(
+    new TableModel(typeof(User)),
+    codeType: CodeType.Model,
+    nameSpace: "MyProject",
+    toFile: true,
+    language: ProgrammingLanguage.CSharp,
+    baseTypes: new string[] { "BaseModel" },
+    ignoredColumns: new string[] { "id" });
+```
++ 可以使用VDB.GenerateCode()方法,根据数据表的结构来生成代码。
++ 支持指定使用C#、Visual Basic等编程语言。
++ 支持生成数据模型类、服务接口。
++ 支持指定要映射的数据表，也可以忽略这个参数而扫描全部数据表，创建全部的数据模型。
++ 支持获得文字形式的代码，也可以让代码自动保存到项目的文件夹中(Models\IServices)。
++ 支持指定命名空间名称。
++ 支持添加继承的基类，或实现的接口。
++ 支持指定需要忽略的数据列。
 
+##联系我们
 ***在使用时遇到问题或提出建议，可使用 email:cnxl@hotmail.com 联系我们，我们将尽快回复。***
