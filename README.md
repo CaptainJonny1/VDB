@@ -293,13 +293,13 @@ var result = v1.GetData();
 ### DBFirst
 ```C#
 var result = vdb.GenerateCode(
-    new string[] { "biz_user" },
-    codeType: CodeType.Model,
-    nameSpace: "MyProject",
-    language: ProgrammingLanguage.CSharp,
-    baseTypes: new string[] { "BaseModel" },
-    ignoredColumns: new string[] { "id" })
-    .ToString();
+        new string[] { "user" },
+        language: ProgrammingLanguage.CSharp)
+    .Model(
+        nameSpace: "MyProject", 
+        baseTypes: new string[] { "BaseModel" }, 
+        ignoredColumns: new string[] { "id" })
+    .ToFile();
 ```
 + You can use the VDB.GenerateCode() method to generate codes according to the structure of the data table.
 + Use the ToString() method to get the code in text form. The generated code is output as the characters contained in the Value of the Dictionary, and the Key in the Dictionary is the table name.
@@ -602,13 +602,13 @@ var result = v1.GetData();
 ### DBFirst
 ```C#
 var result = vdb.GenerateCode(
-    new string[] { "biz_user" },
-    codeType: CodeType.Model,
-    nameSpace: "MyProject",
-    language: ProgrammingLanguage.CSharp,
-    baseTypes: new string[] { "BaseModel" },
-    ignoredColumns: new string[] { "id" })
-    .ToString();
+        new string[] { "user" },
+        language: ProgrammingLanguage.CSharp)
+    .Model(
+        nameSpace: "MyProject", 
+        baseTypes: new string[] { "BaseModel" }, 
+        ignoredColumns: new string[] { "id" })
+    .ToFile();
 ```
 + 可以使用VDB.GenerateCode()方法,根据数据表的结构来生成代码。
 + 使用ToString()方法获得文字形式的代码。生成的代码输出为包含在Dictionary的Value中的字符，Dictionary中的Key是表名。
