@@ -290,19 +290,20 @@ var result = v1.GetData();
 ### DBFirst
 ```C#
 var result = vdb.GenerateCode(
-    new TableModel(typeof(User)),
+    new string[] { "biz_user" },
     codeType: CodeType.Model,
     nameSpace: "MyProject",
-    toFile: true,
     language: ProgrammingLanguage.CSharp,
     baseTypes: new string[] { "BaseModel" },
-    ignoredColumns: new string[] { "id" });
+    ignoredColumns: new string[] { "id" })
+    .ToString();
 ```
 + You can use the VDB.GenerateCode() method to generate codes according to the structure of the data table.
++ Use the ToString() method to get the code in text form. The generated code is output as the characters contained in the Value of the Dictionary, and the Key in the Dictionary is the table name.
++ Use the ToFile() method to automatically save the code to the specified file directory, and the default path is the project folder (Models\IServices).
 + Support specifying programming languages such as C# and Visual Basic.
 + Support for generating data model classes and service interfaces.
 + Support specifying the data table to be mapped, or you can ignore this parameter and scan all data tables to create all data models.
-+ Support to obtain the code in text form, and also allow the code to be automatically saved to the project folder (Models\IServices).
 + Support specifying namespace name.
 + Support adding inherited base classes, or implemented interfaces.
 + Support specifying data columns that need to be ignored.
@@ -595,19 +596,20 @@ var result = v1.GetData();
 ### DBFirst
 ```C#
 var result = vdb.GenerateCode(
-    new TableModel(typeof(User)),
+    new string[] { "biz_user" },
     codeType: CodeType.Model,
     nameSpace: "MyProject",
-    toFile: true,
     language: ProgrammingLanguage.CSharp,
     baseTypes: new string[] { "BaseModel" },
-    ignoredColumns: new string[] { "id" });
+    ignoredColumns: new string[] { "id" })
+    .ToString();
 ```
 + 可以使用VDB.GenerateCode()方法,根据数据表的结构来生成代码。
++ 使用ToString()方法获得文字形式的代码。生成的代码输出为包含在Dictionary的Value中的字符，Dictionary中的Key是表名。
++ 使用ToFile()方法可以让代码自动保存到指定的文件目录中，默认路径是项目的文件夹中(Models\IServices)。
 + 支持指定使用C#、Visual Basic等编程语言。
 + 支持生成数据模型类、服务接口。
 + 支持指定要映射的数据表，也可以忽略这个参数而扫描全部数据表，创建全部的数据模型。
-+ 支持获得文字形式的代码，也可以让代码自动保存到项目的文件夹中(Models\IServices)。
 + 支持指定命名空间名称。
 + 支持添加继承的基类，或实现的接口。
 + 支持指定需要忽略的数据列。
