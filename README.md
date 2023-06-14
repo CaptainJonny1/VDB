@@ -8,6 +8,7 @@ Simple ORM framework for MySql/Sql Server（Will add more） using lambda expres
 using Microsoft.Data.SqlClient; //Connect to the SqlServer database.
 using MySqlConnector;   //Connect to the Mysql database.
 using System.Data.Common;
+using Voy.DALBase.Tools;
 
 //When you need to connect to the Mysql database.
 DbConnection conn = new MySqlConnection("Server=XXX.XXX.XXX.XXX; Port=XXXX; Database=XXXX; Uid=XXXX; Pwd=XXXXXXXX; SslMode=Preferred;"); 
@@ -15,7 +16,9 @@ DbConnection conn = new MySqlConnection("Server=XXX.XXX.XXX.XXX; Port=XXXX; Data
 //When you need to connect to the SqlServer database.
 DbConnection conn = new SqlConnection("Server=XXX.XXX.XXX.XXX; Port=XXXX; Database=XXXX; Uid=XXXX; Pwd=XXXXXXXX; SslMode=Preferred;"); 
 
-VDB vdb = new VDB(conn));
+VDB vdb = new VDB(conn);   //normal mode.
+VDBSingleton.Instance.VDB = new VDB(conn);  //singleton mode.
+builder.Register(c => new VDBService(conn)).As<IVDB>().SingleInstance();    //Used to register IoC.
 ```
 ### Public Methods
 |Description||Get SQL statement|Get parameters of SQL statement|Execute data operation command|Execute data query command|Execute scalar query command|
@@ -309,7 +312,7 @@ var result = vdb.GenerateCode(
 + Support specifying data columns that need to be ignored.
 
 ## Contact Us
-***If you encounter problems or make suggestions during use, you can contact us at email:cnxl@hotmail.com, and we will reply as soon as possible.***
+***email:cnxl@hotmail.com, we will reply as soon as possible.***
 
 # 中文
 适用于MySql/Sql Server（将添加更多），可使用Lambda表达式的简单ORM框架。
@@ -319,6 +322,7 @@ var result = vdb.GenerateCode(
 using Microsoft.Data.SqlClient; //连接到SqlServer数据库。
 using MySqlConnector;   //连接到Mysql数据库。
 using System.Data.Common;
+using Voy.DALBase.Tools;
 
 //当你需要连接到Mysql数据库。
 DbConnection conn = new MySqlConnection("Server=XXX.XXX.XXX.XXX; Port=XXXX; Database=XXXX; Uid=XXXX; Pwd=XXXXXXXX; SslMode=Preferred;"); 
@@ -326,7 +330,9 @@ DbConnection conn = new MySqlConnection("Server=XXX.XXX.XXX.XXX; Port=XXXX; Data
 //当你需要连接到SqlServer数据库。
 DbConnection conn = new SqlConnection("Server=XXX.XXX.XXX.XXX; Port=XXXX; Database=XXXX; Uid=XXXX; Pwd=XXXXXXXX; SslMode=Preferred;"); 
 
-VDB vdb = new VDB(conn));
+VDB vdb = new VDB(conn);   //普通模式。
+VDBSingleton.Instance.VDB = new VDB(conn);  //单例模式。
+builder.Register(c => new VDBService(conn)).As<IVDB>().SingleInstance();    //用于注册IoC中。
 ```
 
 ### 公共方法
@@ -615,4 +621,4 @@ var result = vdb.GenerateCode(
 + 支持指定需要忽略的数据列。
 
 ##联系我们
-***在使用时遇到问题或提出建议，可使用 email:cnxl@hotmail.com 联系我们，我们将尽快回复。***
+***email:cnxl@hotmail.com，我们将尽快回复。***
