@@ -291,25 +291,72 @@ var result = v1.GetData();
 1. When inserting in batches, the attributes mapped to mandatory fields with default values must be set or not set at all. Because there is an object in the set of parameters with this field set, this field will appear in the SQL statement, and other records without this field cannot be executed successfully due to lack of parameters.
 
 ### DBFirst
+#### Example
 ```C#
-var result = vdb.GenerateCode(
-        new string[] { "user" },
-        language: ProgrammingLanguage.CSharp)
+using Voy.DALBase;
+using Voy.DALBase.Tools;
+using Voy.DALBase.Utils;
+
+var result = vdb.GenerateCode()
     .Model(
+        tables:new string[] { "user" },
+        language: ProgrammingLanguage.CSharp
         nameSpace: "MyProject", 
         baseTypes: new string[] { "BaseModel" }, 
         ignoredColumns: new string[] { "id" })
-    .ToFile();
+    .ToFile(true);
 ```
-+ You can use the VDB.GenerateCode() method to generate codes according to the structure of the data table.
+
+#### Ioc registration example
+```C#
+public static void Main(string[] args)
+{    
+    string _connString = "Server=192.168.110.100; Port=3306; Database=1d7b4b66158b41f38109dd100eb0d505; Uid=root; Pwd=123456; SslMode=Preferred;";
+    DbConnection conn = new MySqlConnection(_connString);
+    conn.Open();
+
+    //var result1 = vdb.GenerateCode().Model().ToFile();
+    //var result2 = vdb.GenerateCode().IRepository().ToFile();
+    //var result3 = vdb.GenerateCode().Repository().ToFile();
+    //var result4 = vdb.GenerateCode().Ioc().ToFile();
+    //var result5 = vdb.GenerateCode().WebAPIController().ToFile();  
+
+    var builder = WebApplication.CreateBuilder(args);
+
+    // Add services to the container.
+
+    builder.Services.AddControllers();
+    // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen();
+
+    Func<IServiceProvider, VDB> vdb = r => new VDB(conn);
+
+    builder.Services.AddSingleton<IVDB, VDB>(vdb);
+    builder.Services.AddScoped<IUserRepository, UserRepository>();
+    ...
+```
+
++ You can use the VDB.GenerateCode() method to generate codes based on the structure of the data table.
 + Use the ToString() method to get the code in text form. The generated code is output as the characters contained in the Value of the Dictionary, and the Key in the Dictionary is the table name.
-+ Use the ToFile() method to automatically save the code to the specified file directory, and the default path is the project folder (Models\IServices).
-+ Support specifying programming languages such as C# and Visual Basic.
-+ Support for generating data model classes and service interfaces.
-+ Support specifying the data table to be mapped, or you can ignore this parameter and scan all data tables to create all data models.
-+ Support specifying namespace name.
-+ Support adding inherited base classes, or implemented interfaces.
++ Use the ToFile() method to automatically save the code to the specified file directory. The default path is the folder of the project or insert the generated code into the file.
++ Supports specifying the use of programming languages such as C# and Visual Basic.
++ Supports generating data model classes, database interfaces, database classes, Ioc registration code fragments, and WebAPI controller classes.
++ It supports specifying the mapped data table, or you can ignore this parameter and scan all data tables to create all data models.
++ Support for specifying namespace names.
++ Support for adding inherited base classes, or implemented interfaces.
 + Support specifying data columns that need to be ignored.
+
+|Name|Description|parameter|Default save path|
+|-|-|-|-|
+|GenerateCode()| Generates a code tool object. |||
+|Model()| Generates code for the data model class. |language: The programming language used to generate content, if not specified, C# will be used. tables: The name of the data table. If not specified, all tables are scanned. nameSpace: namespace. If not specified the current project name is used. baseTypes: Inherited base class or implemented interface name. ignoredColumns: ignored columns. |~\Models|
+|IRepository()| Generate code for the repository interface. |language: The programming language used to generate content, if not specified, C# will be used. tables: The name of the data table. If not specified, all tables are scanned. nameSpace: namespace. If not specified the current project name is used. baseTypes: Inherited base class or implemented interface name. |~\IRepositories|
+|Repository()| Generates code for repository classes. |language: The programming language used to generate content, if not specified, C# will be used. tables: The name of the data table. If not specified, all tables are scanned. nameSpace: namespace. If not specified the current project name is used. baseTypes: Inherited base class or implemented interface name. |~\Repositories|
+|Ioc()| Generate code for the Ioc registration code snippet. |language: The programming language used to generate content, if not specified, C# will be used. tables: The name of the data table. If not specified, all tables are scanned. |Insert after "builder.Services.AddSwaggerGen();" in the Program.cs file. |
+|WebAPIController()| Generates code for a WebAPI controller class. |language: The programming language used to generate content, if not specified, C# will be used. tables: The name of the data table. If not specified, all tables are scanned. nameSpace: namespace. If not specified the current project name is used. baseTypes: Inherited base class or implemented interface name. |~\Controllers|
+|ToFile()|Automatically save the generated code to the specified file directory, the default path is the project folder (Models\IServices). |targetPath: The target path of the file. If no path is specified, files will be created in directories such as "Models" and "IServices" under the project according to the CodeType. isCover: Whether to overwrite if a file with the same name exists in the path. The default is to not override.||
+|ToString()| Outputs the generated code as the characters contained in the Value of the Dictionary, where the Key in the Dictionary is the table name. |||
 
 ## Contact Us
 ***email:cnxl@hotmail.com, we will reply as soon as possible.***
@@ -601,24 +648,70 @@ var result = v1.GetData();
 1. 批量插入时，有默认值的必填字段映射的属性要全部设置或全部不设置数值。因为参数的集合中有一个对象设置了该字段，就会在SQL语句中出现该字段，其他未设置该字段的记录则因缺少参数而不能执行成功。
 ### DBFirst
 ```C#
-var result = vdb.GenerateCode(
-        new string[] { "user" },
-        language: ProgrammingLanguage.CSharp)
+using Voy.DALBase;
+using Voy.DALBase.Tools;
+using Voy.DALBase.Utils;
+
+var result = vdb.GenerateCode()
     .Model(
+        tables:new string[] { "user" },
+        language: ProgrammingLanguage.CSharp
         nameSpace: "MyProject", 
         baseTypes: new string[] { "BaseModel" }, 
         ignoredColumns: new string[] { "id" })
-    .ToFile();
+    .ToFile(true);
 ```
-+ 可以使用VDB.GenerateCode()方法,根据数据表的结构来生成代码。
+
+#### Ioc注册示例
+```C#
+public static void Main(string[] args)
+{    
+    string _connString = "Server=192.168.110.100; Port=3306; Database=1d7b4b66158b41f38109dd100eb0d505; Uid=root; Pwd=123456; SslMode=Preferred;";
+    DbConnection conn = new MySqlConnection(_connString);
+    conn.Open();
+
+    //var result1 = vdb.GenerateCode().Model().ToFile();
+    //var result2 = vdb.GenerateCode().IRepository().ToFile();
+    //var result3 = vdb.GenerateCode().Repository().ToFile();
+    //var result4 = vdb.GenerateCode().Ioc().ToFile();
+    //var result5 = vdb.GenerateCode().WebAPIController().ToFile();  
+
+    var builder = WebApplication.CreateBuilder(args);
+
+    // Add services to the container.
+
+    builder.Services.AddControllers();
+    // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen();
+
+    Func<IServiceProvider, VDB> vdb = r => new VDB(conn);
+
+    builder.Services.AddSingleton<IVDB, VDB>(vdb);
+    builder.Services.AddScoped<IUserRepository, UserRepository>();
+    ...
+```
+
++ 可以使用VDB.GenerateCode()方法，根据数据表的结构来生成代码。
 + 使用ToString()方法获得文字形式的代码。生成的代码输出为包含在Dictionary的Value中的字符，Dictionary中的Key是表名。
-+ 使用ToFile()方法可以让代码自动保存到指定的文件目录中，默认路径是项目的文件夹中(Models\IServices)。
++ 使用ToFile()方法可以让代码自动保存到指定的文件目录中，默认路径是项目的文件夹中或将生成的代码插入文件中。
 + 支持指定使用C#、Visual Basic等编程语言。
-+ 支持生成数据模型类、服务接口。
-+ 支持指定要映射的数据表，也可以忽略这个参数而扫描全部数据表，创建全部的数据模型。
++ 支持生成数据模型类、资料库接口、资料库类、Ioc注册代码片段、WebAPI控制器类。
++ 支持指定映射的数据表，也可以忽略这个参数而扫描全部数据表，进而创建全部的数据模型。
 + 支持指定命名空间名称。
 + 支持添加继承的基类，或实现的接口。
 + 支持指定需要忽略的数据列。
 
-##联系我们
+|名称|说明|参数|默认保存路径|
+|-|-|-|-|
+|GenerateCode()|生成代码工具对象。|||
+|Model()|生成数据模型类的代码。|language：生成内容使用的编程语言，如不指定将使用C#。tables：数据表的名称。如不指定则扫描全部表。nameSpace：命名空间。如不指定则使用当前项目名称。baseTypes：继承的基类或实现的接口名字。ignoredColumns：忽略的列。|~\Models|
+|IRepository()|生成资料库接口的代码。|language：生成内容使用的编程语言，如不指定将使用C#。tables：数据表的名称。如不指定则扫描全部表。nameSpace：命名空间。如不指定则使用当前项目名称。baseTypes：继承的基类或实现的接口名字。|~\IRepositories|
+|Repository()|生成资料库类的代码。|language：生成内容使用的编程语言，如不指定将使用C#。tables：数据表的名称。如不指定则扫描全部表。nameSpace：命名空间。如不指定则使用当前项目名称。baseTypes：继承的基类或实现的接口名字。|~\Repositories|
+|Ioc()|生成Ioc注册代码片段的代码。|language：生成内容使用的编程语言，如不指定将使用C#。tables：数据表的名称。如不指定则扫描全部表。|插入Program.cs文件中“builder.Services.AddSwaggerGen();”之后。|
+|WebAPIController()|生成WebAPI控制器类的代码。|language：生成内容使用的编程语言，如不指定将使用C#。tables：数据表的名称。如不指定则扫描全部表。nameSpace：命名空间。如不指定则使用当前项目名称。baseTypes：继承的基类或实现的接口名字。|~\Controllers|
+|ToFile()|将生成的代码自动保存到指定的文件目录中，默认路径是项目的文件夹中(Models\IServices)。|targetPath：文件的目标路径。如不指定路径，则会根据CodeType在项目下的“Models”、“IServices”等目录中创建文件。isCover：如果路径中存在同名文件，是否进行覆盖。默认为不覆盖。||
+|ToString()|将生成的代码输出为包含在Dictionary的Value中的字符，Dictionary中的Key是表名。|||
+
+## 联系我们
 ***email:cnxl@hotmail.com，我们将尽快回复。***
