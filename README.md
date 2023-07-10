@@ -2,19 +2,34 @@
 [TOC]
 # English
 Simple ORM framework for MySql/Sql Server（Will add more） using lambda expressions.
+## Install
+|||
+|-|-|
+|.NET CLI|```dotnet add package Voy.DALBase```|
+|Package Manager|```NuGet\Install-Package Voy.DALBase```|
+|PackageReference|```<PackageReference Include="Voy.DALBase" />```|
+|Paket CLI|```paket add Voy.DALBase```|
+
 ## How to use
 ### Instantiate
 ```C#
-using Microsoft.Data.SqlClient; //Connect to the SqlServer database.
-using MySqlConnector;   //Connect to the Mysql database.
+using Microsoft.Data.SqlClient; //Connect to SqlServer database.
+using MySqlConnector;           //Connect to Mysql database.
+using System.Data.OleDb;        //Connect to Access database.
+using System.Data.SQLite;       //Connect to SQLite database.
 using System.Data.Common;
 using Voy.DALBase.Tools;
 
-//When you need to connect to the Mysql database.
+//When you need to connect to Mysql database.
 DbConnection conn = new MySqlConnection("Server=XXX.XXX.XXX.XXX; Port=XXXX; Database=XXXX; Uid=XXXX; Pwd=XXXXXXXX; SslMode=Preferred;"); 
 
-//When you need to connect to the SqlServer database.
-DbConnection conn = new SqlConnection("Server=XXX.XXX.XXX.XXX; Port=XXXX; Database=XXXX; Uid=XXXX; Pwd=XXXXXXXX; SslMode=Preferred;"); 
+//When you need to connect to SqlServer database.
+DbConnection conn = new SqlConnection("Server=XXX.XXX.XXX.XXX; Port=XXXX; Database=XXXX; Uid=XXXX; Pwd=XXXXXXXX; TrustServerCertificate=true;"); 
+
+//When you need to connect to SQLite database.
+string dbPath = @"D:\db1.sqlite";
+SQLiteConnection.CreateFile(dbPath);
+DbConnection connDB = new SQLiteConnection($"Data Source={dbPath}");
 
 VDB vdb = new VDB(conn);   //normal mode.
 VDBSingleton.Instance.VDB = new VDB(conn);  //singleton mode.
@@ -23,8 +38,8 @@ VDBSingleton.Instance.VDB = new VDB(conn);  //singleton mode.
 |Description||Get SQL statement|Get parameters of SQL statement|Execute data operation command|Execute data query command|Execute scalar query command|
 |-|-|:-:|:-:|:-:|:-:|:-:|
 ||Method|GetSQLString()|GetParams()|Execute()|GetData()|ExecuteScalar()|
-|Create database|CreateDatabase()|✓|✓|✓|||
-|Remove database|DropDatabase()|✓|✓|✓|||
+|Create database（Access/SQLite is not applicable）|CreateDatabase()|✓|✓|✓|||
+|Remove database（Access/SQLite is not applicable）|DropDatabase()|✓|✓|✓|||
 |Get table information in the database|GetDatabaseTables()|✓|✓||✓|✓|
 |Create data table|CreateTable()|✓|✓|✓|||
 |Remove data table|DropTable()|✓|✓|✓|||
@@ -153,19 +168,21 @@ var items = sel1.GetData();
 |Page()|int pageIndex, int pageSize|1|The total number of records can be obtained using the "Count" property.|
 
 ### Operators For Filter（Where Method）
-|Operator|Description|Usage example|
+|Operator|Usage example|Description|
 |:-:|-|-|
-|==||u.Name == "Johnny"|
-|!=||u.Name != "Johnny"|
-|<||u.Age < 30|
-|<=||u.Age <= 30|
-|>||u.Age > 30|
-|>=||u.Age >= 30|
-|&&||u.Name == "Johnny" && u.Age == 30|
-|\|\|||u.Name == "Johnny" \|\| u.Age == 30|
-|StartsWith||u.Name.StartsWith("J")|
-|EndsWith||u.Name.EndsWith("y")|
-|Contains||u.Name.Contains("a") <br>new[] { 1, 2, 3, 4 }.Contains(u.Id)<br>Enumerable.Contains<int>(new[] { 1, 2, 3, }, u.Age)<br>Enumerable.Contains<string>(new[] { "Tom", "Jerry" }, u.Name)|
+|==|u.Name == "Johnny"||
+|!=|u.Name != "Johnny"||
+|<|u.Age < 30||
+|<=|u.Age <= 30||
+|>|u.Age > 30||
+|>=|u.Age >= 30||
+|&&|u.Name == "Johnny" && u.Age == 30||
+|\|\||u.Name == "Johnny" \|\| u.Age == 30||
+|StartsWith|u.Name.StartsWith("J")||
+|EndsWith|u.Name.EndsWith("y")||
+|Contains|u.Name.Contains("a") <br>new[] { 1, 2, 3, 4 }.Contains(u.Id)<br>Enumerable.Contains<int>(new[] { 1, 2, 3, }, u.Age)<br>Enumerable.Contains<string>(new[] { "Tom", "Jerry" }, u.Name)||
+|Substring|u.Name.Substring(0, 1) == "Tom"||
+|IndexOf|u.Name.IndexOf("Tom", 1) == 1||
 + Methods can also be used multiple times, and the order of use is not required. The relationship between the filter conditions executed by multiple methods is And.
 + If there is an "OR" relationship, you can use the static method "Tools.ExpressionTools.CreateExpression<T>()" to create more flexible filter conditions as parameters. For example:
 ```C#
@@ -323,7 +340,7 @@ var result = vdb.GenerateCode()
 |Repository()| Generates code for repository classes. |language: The programming language used to generate content, if not specified, C# will be used. tables: The name of the data table. If not specified, all tables are scanned. nameSpace: namespace. If not specified the current project name is used. baseTypes: Inherited base class or implemented interface name. |~\Repositories|
 |Ioc()| Generate code for the Ioc registration code snippet. |language: The programming language used to generate content, if not specified, C# will be used. tables: The name of the data table. If not specified, all tables are scanned. |Insert after "builder.Services.AddSwaggerGen();" in the Program.cs file. |
 |WebAPIController()| Generates code for a WebAPI controller class. |language: The programming language used to generate content, if not specified, C# will be used. tables: The name of the data table. If not specified, all tables are scanned. nameSpace: namespace. If not specified the current project name is used. baseTypes: Inherited base class or implemented interface name. |~\Controllers|
-|ToFile()|Automatically save the generated code to the specified file directory, the default path is the project folder (Models\IServices). |targetPath: The target path of the file. If no path is specified, files will be created in directories such as "Models" and "IServices" under the project according to the CodeType. isCover: Whether to overwrite if a file with the same name exists in the path. The default is to not override.||
+|ToFile()|Automatically save the generated code to the specified file directory, the default path is the project folder (Models\IRepositories). |targetPath: The target path of the file. If no path is specified, files will be created in directories such as "Models" and "IRepositories" under the project according to the CodeType. isCover: Whether to overwrite if a file with the same name exists in the path. The default is to not override.||
 |ToString()| Outputs the generated code as the characters contained in the Value of the Dictionary, where the Key in the Dictionary is the table name. |||
 
 ### Ioc registration example
@@ -360,11 +377,20 @@ public static void Main(string[] args)
 
 # 中文
 适用于MySql/Sql Server（将添加更多），可使用Lambda表达式的简单ORM框架。
+## 安装
+|||
+|-|-|
+|.NET CLI|```dotnet add package Voy.DALBase```|
+|Package Manager|```NuGet\Install-Package Voy.DALBase```|
+|PackageReference|```<PackageReference Include="Voy.DALBase" />```|
+|Paket CLI|```paket add Voy.DALBase```|
 ## 如何使用
 ### 实例化
 ```C#
 using Microsoft.Data.SqlClient; //连接到SqlServer数据库。
-using MySqlConnector;   //连接到Mysql数据库。
+using MySqlConnector;           //连接到Mysql数据库。
+using System.Data.OleDb;        //连接到Access数据库。
+using System.Data.SQLite;       //连接到SQLite数据库。
 using System.Data.Common;
 using Voy.DALBase.Tools;
 
@@ -372,7 +398,12 @@ using Voy.DALBase.Tools;
 DbConnection conn = new MySqlConnection("Server=XXX.XXX.XXX.XXX; Port=XXXX; Database=XXXX; Uid=XXXX; Pwd=XXXXXXXX; SslMode=Preferred;"); 
 
 //当你需要连接到SqlServer数据库。
-DbConnection conn = new SqlConnection("Server=XXX.XXX.XXX.XXX; Port=XXXX; Database=XXXX; Uid=XXXX; Pwd=XXXXXXXX; SslMode=Preferred;"); 
+DbConnection conn = new SqlConnection("Server=XXX.XXX.XXX.XXX; Port=XXXX; Database=XXXX; Uid=XXXX; Pwd=XXXXXXXX; TrustServerCertificate=true;"); 
+
+//当你需要连接到SQLite数据库。
+string dbPath = @"D:\db1.sqlite";
+SQLiteConnection.CreateFile(dbPath);
+DbConnection connDB = new SQLiteConnection($"Data Source={dbPath}");
 
 VDB vdb = new VDB(conn);   //普通模式。
 VDBSingleton.Instance.VDB = new VDB(conn);  //单例模式。
@@ -382,8 +413,8 @@ VDBSingleton.Instance.VDB = new VDB(conn);  //单例模式。
 |说明||获取SQL语句|获取SQL语句的参数|执行数据操作命令|执行数据查询命令|执行标量查询命令|
 |-|-|:-:|:-:|:-:|:-:|:-:|
 ||方法|GetSQLString()|GetParams()|Execute()|GetData()|ExecuteScalar()|
-|创建数据库|CreateDatabase()|✓|✓|✓|||
-|移除数据库|DropDatabase()|✓|✓|✓|||
+|创建数据库（Access/SQLite不适用）|CreateDatabase()|✓|✓|✓|||
+|移除数据库（Access/SQLite不适用）|DropDatabase()|✓|✓|✓|||
 |获取数据库中的表信息|GetDatabaseTables()|✓|✓||✓|✓|
 |创建数据表|CreateTable()|✓|✓|✓|||
 |移除数据表|DropTable()|✓|✓|✓|||
@@ -506,19 +537,21 @@ var items = sel1.GetData();
 |FullOutJoin()||Lambda表达式|∞|只要其中一个表中存在匹配，则返回行。|
 |Page()|筛选结果的分页|int pageIndex, int pageSize|1|引用"Count"属性获得记录总数。|
 ### 过滤器的运算符（Where 方法）
-|运算符|说明|使用示例|
+|运算符|使用示例|说明|
 |:-:|-|-|
-|==||u.Name == "张三"|
-|!=||u.Name != "张三"|
-|<||u.Age < 30|
-|<=||u.Age <= 30|
-|>||u.Age > 30|
-|>=||u.Age >= 30|
-|&&||u.Name == "张三" && u.Age == 30|
-|\|\|||u.Name == "张三" \|\| u.Age == 30|
-|StartsWith||u.Name.StartsWith("张")|
-|EndsWith||u.Name.EndsWith("三")|
-|Contains||u.Name.Contains("张") <br>new[] { 1, 2, 3, 4 }.Contains(u.Id)<br>Enumerable.Contains<int>(new[] { 1, 2, 3, }, u.Age)<br>Enumerable.Contains<string>(new[] { "张三", "李四" }, u.Name)|
+|==|u.Name == "张三"||
+|!=|u.Name != "张三"||
+|<|u.Age < 30||
+|<=|u.Age <= 30||
+|>|u.Age > 30||
+|>=|u.Age >= 30||
+|&&|u.Name == "张三" && u.Age == 30||
+|\|\||u.Name == "张三" \|\| u.Age == 30||
+|StartsWith|u.Name.StartsWith("张")||
+|EndsWith|u.Name.EndsWith("三")||
+|Contains|u.Name.Contains("张") <br>new[] { 1, 2, 3, 4 }.Contains(u.Id)<br>Enumerable.Contains<int>(new[] { 1, 2, 3, }, u.Age)<br>Enumerable.Contains<string>(new[] { "张三", "李四" }, u.Name)||
+|Substring|u.Name.Substring(0, 1) == "张"||
+|IndexOf|u.Name.IndexOf("张", 1) == 1||
 + 以上方法可以多次使用，使用顺序无要求。多个方法执行的筛选条件之关系为And。
 + 如果有“OR”的关系可以使用静态方法“Tools.ExpressionTools.CreateExpression<T>()”来创建更灵活的筛选条件作为参数。例如：
 ```C#
@@ -676,7 +709,7 @@ var result = vdb.GenerateCode()
 |Repository()|生成资料库类的代码。|language：生成内容使用的编程语言，如不指定将使用C#。tables：数据表的名称。如不指定则扫描全部表。nameSpace：命名空间。如不指定则使用当前项目名称。baseTypes：继承的基类或实现的接口名字。|~\Repositories|
 |Ioc()|生成Ioc注册代码片段的代码。|language：生成内容使用的编程语言，如不指定将使用C#。tables：数据表的名称。如不指定则扫描全部表。|插入Program.cs文件中“builder.Services.AddSwaggerGen();”之后。|
 |WebAPIController()|生成WebAPI控制器类的代码。|language：生成内容使用的编程语言，如不指定将使用C#。tables：数据表的名称。如不指定则扫描全部表。nameSpace：命名空间。如不指定则使用当前项目名称。baseTypes：继承的基类或实现的接口名字。|~\Controllers|
-|ToFile()|将生成的代码自动保存到指定的文件目录中，默认路径是项目的文件夹中(Models\IServices)。|targetPath：文件的目标路径。如不指定路径，则会根据CodeType在项目下的“Models”、“IServices”等目录中创建文件。isCover：如果路径中存在同名文件，是否进行覆盖。默认为不覆盖。||
+|ToFile()|将生成的代码自动保存到指定的文件目录中，默认路径是项目的文件夹中(Models\IRepositories)。|targetPath：文件的目标路径。如不指定路径，则会根据CodeType在项目下的“Models”、“IRepositories”等目录中创建文件。isCover：如果路径中存在同名文件，是否进行覆盖。默认为不覆盖。||
 |ToString()|将生成的代码输出为包含在Dictionary的Value中的字符，Dictionary中的Key是表名。|||
 
 ### Ioc注册示例
