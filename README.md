@@ -151,13 +151,13 @@ var sel1 = vdb.Select<User, Order>((u, o) => new { u.Id, u.Name, o.Amount, o.Cre
 var items = sel1.GetData();
 ```
 + Support multi-level master-slave table query, support one-to-many, many-to-one, one-to-one query, and support a maximum of 8 tables at a time.
-+ Multi-table queries must have a Join statement, and the parameters in the Join statement have no order requirements.
 + The multi-table query always returns the set of the first formal parameter, so in order to return the result correctly, the Property of the model class whose type is the sub-table mapping should be added to the model class mapped by the main table, Property can be a single model or a generic collection of List\<sub-table models>.
 
 |Method|Parameter|Reusable times|Remark|
 |-|-|:-:|-|
 |Where()|Lambda expressions|∞|When used multiple times, the filter condition relationship between methods is And.|
 |WhereByBase()|Lambda expressions|∞|When the type used for filtering is uncertain and common attributes are required (for example, when it is agreed that each class has an Id). WhereByBase<TClass, TBase> The two type parameters are required.|
+|FromQuery()|SelectEntity|∞|From clause can be used to specify a sub-query expression in SQL. |
 |GroupBy()|Lambda expressions|∞|groups rows that have the same values into summary rows, like "find the number of customers in each country".|
 |OrderBy()|Lambda expressions|∞||
 |OrderByDesc()|Lambda expressions|∞||
@@ -192,6 +192,12 @@ var e2 = ExpressionTools.CreateExpression<User>(u => u.Age > 20);
 var exp = e1.And(e2);
 var v1 = vdb.Select<User>().Where(exp);
 ```
++ The second parameter "filterColumns" of the Where method should be set to a new expression. It can apply filter conditions to the columns specified in the expression.For example:
+```C#
+var query = vdb.Select<User, Order>()
+    .Where(u => u.Name.Contains("Tianjin"), u => new { u.Name, u.Introduction });
+var data = query.GetData();
+```
 ### Cond Func
 ```C#
 var v1 = vdb.Select<User>()
@@ -218,6 +224,17 @@ var result = v1.GetData();
 |Max()|Calculates the maximum value of a column.|Lambda expressions|∞|
 |Min()|Calculate the minimum value of a column.|Lambda expressions|∞|
 |Sum()|Calculates the total value of a column.|Lambda expressions|∞|
+### About Pagination query on multiple tables
+Should be implemented using FromQuery subqueries. For example:
+```C#
+var query = vdb.Select<User, Order>()
+    .FromQuery(vdb.Select<User>(u => new { u.Id, u.Name })
+            .Where(u => u.IsDeleted == 0)
+            .OrderBy(u => u.ShowOrder)
+            .Page(1, 10))
+    .LeftJoin((u, o) => u.Id == o.UserId)
+    ;
+```
 ### About Attribute For Model
 + Use the [Table] and [Column] tags on the class and attribute to map the specified data table and data column.
 + If no data table/data column name is specified, VDB will apply different naming rules to map class name -> data table name, attribute name -> data column name according to the mapped database brand.
@@ -521,13 +538,13 @@ var sel1 = vdb.Select<User, Order>((u, o) => new { u.Id, u.Name, o.Amount, o.Cre
 var items = sel1.GetData();
 ```
 + 支持多级主从表查询，支持一对多、多对一、一对一查询，最大可支持一次查询8个表。
-+ 多表查询必须要有Join语句，Join语句中的参数无顺序的要求。
 + 多表查询总是返回第一个形参的集合，所以为了正确返回结果，应在主表映射的模型类中增加类型为子表映射的模型类的属性，属性可以是单一模型或是List<子表模型>的泛型集合。
 
 |方法|说明|参数|可使用次数|备注|
 |-|-|-|:-:|-|
 |Where()|通过属性进行筛选|Lambda表达式|∞|多次使用时，方法之间的筛选条件关系是And。|
 |WhereByBase()|通过基类的属性进行筛选|Lambda表达式|∞|用于筛选的类型不确定，又需要使用通用属性（例如约定每个类都有Id）的时候。WhereByBase<TClass, TBase>两个类型参数为必填。|
+|FromQuery()|子查询|SelectEntity|∞|用于指定SQL中的子查询表达式。|
 |GroupBy()|分组|Lambda表达式|∞||
 |OrderBy()|升序排序|Lambda表达式|∞||
 |OrderByDesc()|降序排序|Lambda表达式|∞||
@@ -552,6 +569,7 @@ var items = sel1.GetData();
 |Contains|u.Name.Contains("张") <br>new[] { 1, 2, 3, 4 }.Contains(u.Id)<br>Enumerable.Contains<int>(new[] { 1, 2, 3, }, u.Age)<br>Enumerable.Contains<string>(new[] { "张三", "李四" }, u.Name)||
 |Substring|u.Name.Substring(0, 1) == "张"||
 |IndexOf|u.Name.IndexOf("张", 1) == 1||
+
 + 以上方法可以多次使用，使用顺序无要求。多个方法执行的筛选条件之关系为And。
 + 如果有“OR”的关系可以使用静态方法“Tools.ExpressionTools.CreateExpression<T>()”来创建更灵活的筛选条件作为参数。例如：
 ```C#
@@ -560,6 +578,12 @@ var e2 = ExpressionTools.CreateExpression<User>(u => u.Age > 20);
 
 var exp = e1.And(e2);
 var v1 = vdb.Select<User>().Where(exp);
+```
++ Where方法的第二个参数“filterColumns”应设置为new表达式。它可以将过滤条件应用到表达式中指定的列。例如：
+```C#
+var query = vdb.Select<User, Order>()
+    .Where(u => u.Name.Contains("天津"), u => new { u.Name, u.Introduction });
+var data = query.GetData();
 ```
 ### 条件函数
 ```C#
@@ -587,7 +611,17 @@ var result = v1.GetData();
 |Max()|计算列的最大值。|Lambda表达式|∞|
 |Min()|计算列的最小值。|Lambda表达式|∞|
 |Sum()|计算列的合计值。|Lambda表达式|∞|
-
+### 关于多表的分页查询
+应使用FromQuery子查询来实现。例如：
+```C#
+var query = vdb.Select<User, Order>()
+    .FromQuery(vdb.Select<User>(u => new { u.Id, u.Name })
+            .Where(u => u.IsDeleted == 0)
+            .OrderBy(u => u.ShowOrder)
+            .Page(1, 10))
+    .LeftJoin((u, o) => u.Id == o.UserId)
+    ;
+```
 ### 关于Model的属性
 + 在类和属性上分别使用[Table]和[Column]标签可以映射指定的数据表和数据列。
 + 在不指定数据表/数据列名称的情况下，VDB会根据映射的数据库品牌，应用不同的命名规则来映射类名->数据表名、属性名->数据列名。
