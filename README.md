@@ -167,7 +167,7 @@ var items = sel1.GetData();
 |FullOutJoin()|Lambda expressions|∞|returns all records when there is a match in left (table1) or right (table2) table records.|
 |Page()|int pageIndex, int pageSize|1|The total number of records can be obtained using the "Count" property.|
 
-### Operators For Filter（Where Method）
+#### Operators For Filter（Where Method）
 |Operator|Usage example|Description|
 |:-:|-|-|
 |==|u.Name == "Johnny"||
@@ -192,13 +192,26 @@ var e2 = ExpressionTools.CreateExpression<User>(u => u.Age > 20);
 var exp = e1.And(e2);
 var v1 = vdb.Select<User>().Where(exp);
 ```
-+ The second parameter "filterColumns" of the Where method should be set to a new expression. It can apply filter conditions to the columns specified in the expression.For example:
+#### Multi-column query
+Setting the second parameter "filterColumns" of the Where method to a "new expression" can achieve a more convenient multi-column query, so that the filter condition can be applied to all columns specified in the expression. For example:
 ```C#
 var query = vdb.Select<User, Order>()
     .Where(u => u.Name.Contains("Tianjin"), u => new { u.Name, u.Introduction });
 var data = query.GetData();
 ```
-### Cond Func
+#### Recursive query
+Suitable for querying infinitely hierarchical table structures. For example, the table contains a ParentId field, which is used to record the superior of the current record.
+Implementation:
++ Use the first expression parameter of "InnerJoin" to set the relationship between the identification field and its parent identification field, and set the condition for the end of recursion in the second expression parameter.
++ The third expression is an optional parameter. If this parameter is set as an attribute mapped to a field, VDB will use this attribute as a condition to convert the query result into a tree structure.
++ SQLServer has no limit to the recursion depth, and the maximum recursion depth of MySQL is 4,294,967,295.
+```C#
+var query = vdb.Select<User, Order>((u, o) => new { u.Id, u.ParentId, u.Name, u.ShowOrder, o.Product })
+     .LeftJoin((u, o) => o.UserId == u.Id)
+     .InnerJoin((u) => u.Id == u.ParentId, u => u.Id == 1, u => u.ParentId)
+     ;
+```
+#### Cond Func
 ```C#
 var v1 = vdb.Select<User>()
 .IF(u => u.IsDeleted == 0 ? "Not deleted" : "Deleted", "Deleted status")
@@ -210,7 +223,7 @@ var result = v1.GetData();
 |If()|If the judgment condition is true, return the first value after "?", otherwise return the second value.|Lambda expressions, Temporary column name (nullable)|∞|
 |IfNull()|If the judgment object is empty, return the value after "??".|Lambda expressions|∞|
 
-### Agg Func
+#### Agg Func
 ```C#
 var v1 = vdb.Select<User>()
 .SUM(u => u.Age,)
@@ -224,7 +237,7 @@ var result = v1.GetData();
 |Max()|Calculates the maximum value of a column.|Lambda expressions|∞|
 |Min()|Calculate the minimum value of a column.|Lambda expressions|∞|
 |Sum()|Calculates the total value of a column.|Lambda expressions|∞|
-### About Pagination query on multiple tables
+#### About Pagination query on multiple tables
 Should be implemented using FromQuery subqueries. For example:
 ```C#
 var query = vdb.Select<User, Order>()
@@ -553,7 +566,7 @@ var items = sel1.GetData();
 |RightJoin()|右联合查询|Lambda表达式|∞|即使左表中没有匹配，也从右表返回所有的行。|
 |FullOutJoin()||Lambda表达式|∞|只要其中一个表中存在匹配，则返回行。|
 |Page()|筛选结果的分页|int pageIndex, int pageSize|1|引用"Count"属性获得记录总数。|
-### 过滤器的运算符（Where 方法）
+#### 过滤器的运算符（Where 方法）
 |运算符|使用示例|说明|
 |:-:|-|-|
 |==|u.Name == "张三"||
@@ -579,13 +592,26 @@ var e2 = ExpressionTools.CreateExpression<User>(u => u.Age > 20);
 var exp = e1.And(e2);
 var v1 = vdb.Select<User>().Where(exp);
 ```
-+ Where方法的第二个参数“filterColumns”应设置为new表达式。它可以将过滤条件应用到表达式中指定的列。例如：
+#### 多列查询
+将Where方法的第二个参数“filterColumns”设置为new表达式可以实现更方便的多列查询，这样可以将过滤条件应用到表达式中指定的全部列。例如：
 ```C#
 var query = vdb.Select<User, Order>()
     .Where(u => u.Name.Contains("天津"), u => new { u.Name, u.Introduction });
 var data = query.GetData();
 ```
-### 条件函数
+#### 递归查询
+适用于查询无限分级的表结构。例如表中含有ParentId字段，用来记录当前记录的上级。
+实现方法：
++ 使用“InnerJoin”的第一个表达式参数中设置标识字段与其父标识字段的关系，并在第二个表达式参数中设置递归结束的条件。
++ 第三个表达式为可选参数，如果设置该参数为一个字段映射的属性，VDB将使用该属性作为条件，将查询结果转化为树结构。
++ SQLServer没有递归深度的限制，MySQL最大递归深度为4,294,967,295。
+```C#
+var query = vdb.Select<User, Order>((u, o) => new { u.Id, u.ParentId, u.Name, u.ShowOrder, o.Product })
+    .LeftJoin((u, o) => o.UserId == u.Id)
+    .InnerJoin((u) => u.Id == u.ParentId, u => u.Id == 1, u => u.ParentId)
+    ;
+```
+#### 条件函数
 ```C#
 var v1 = vdb.Select<User>()
 .IF(u => u.IsDeleted == 0 ? "未删除" : "已删除", "删除状态")
@@ -597,7 +623,7 @@ var result = v1.GetData();
 |If()|判断条件如果为真，则返回?后面的第一个值，否则返回第二个值。|Lambda表达式，临时列名（可选）|∞|
 |IfNull()|判断对象如果为空，则返回??后面的值。|Lambda表达式|∞|
 
-### 聚合函数
+#### 聚合函数
 ```C#
 var v1 = vdb.Select<User>()
 .Sum(u => u.Age,)
@@ -611,7 +637,7 @@ var result = v1.GetData();
 |Max()|计算列的最大值。|Lambda表达式|∞|
 |Min()|计算列的最小值。|Lambda表达式|∞|
 |Sum()|计算列的合计值。|Lambda表达式|∞|
-### 关于多表的分页查询
+#### 关于多表的分页查询
 应使用FromQuery子查询来实现。例如：
 ```C#
 var query = vdb.Select<User, Order>()
