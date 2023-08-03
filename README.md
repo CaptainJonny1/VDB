@@ -343,16 +343,17 @@ using Voy.DALBase;
 using Voy.DALBase.Tools;
 using Voy.DALBase.Utils;
 
-var result = vdb.GenerateCode()
-    .Model(
-        tables:new string[] { "user" },
-        language: ProgrammingLanguage.CSharp
-        nameSpace: "MyProject", 
-        baseTypes: new string[] { "BaseModel" }, 
-        ignoredColumns: new string[] { "id" })
-    .ToFile(true);
+string _connString = "Server=192.168.110.100; Port=3306; Database=vdb_test; Uid=XXXX; Pwd=XXXXXX; SslMode=Preferred;";
+DbConnection conn = new MySqlConnection(_connString);
+CodeTool tool = new CodeTool(conn) { Language = ProgrammingLanguage.CSharp };
+
+var result1 = tool.CreateModel().ToFile();
+var result2 = tool.CreateIRepository().ToFile();
+var result3 = tool.CreateRepository().ToFile();
+var result4 = tool.RegisterIoC().InsertFile();
+var result5 = tool.CreateWebAPIController().ToFile();
 ```
-+ You can use the VDB.GenerateCode() method to generate codes based on the structure of the data table.
++ You can use the CodeTool's method to generate codes based on the structure of the data table.
 + Use the ToString() method to get the code in text form. The generated code is output as the characters contained in the Value of the Dictionary, and the Key in the Dictionary is the table name.
 + Use the ToFile() method to automatically save the code to the specified file directory. The default path is the folder of the project or insert the generated code into the file.
 + Supports specifying the use of programming languages such as C# and Visual Basic.
@@ -368,7 +369,7 @@ var result = vdb.GenerateCode()
 |Model()| Generates code for the data model class. |language: The programming language used to generate content, if not specified, C# will be used. tables: The name of the data table. If not specified, all tables are scanned. nameSpace: namespace. If not specified the current project name is used. baseTypes: Inherited base class or implemented interface name. ignoredColumns: ignored columns. |~\Models|
 |IRepository()| Generate code for the repository interface. |language: The programming language used to generate content, if not specified, C# will be used. tables: The name of the data table. If not specified, all tables are scanned. nameSpace: namespace. If not specified the current project name is used. baseTypes: Inherited base class or implemented interface name. |~\IRepositories|
 |Repository()| Generates code for repository classes. |language: The programming language used to generate content, if not specified, C# will be used. tables: The name of the data table. If not specified, all tables are scanned. nameSpace: namespace. If not specified the current project name is used. baseTypes: Inherited base class or implemented interface name. |~\Repositories|
-|Ioc()| Generate code for the Ioc registration code snippet. |language: The programming language used to generate content, if not specified, C# will be used. tables: The name of the data table. If not specified, all tables are scanned. |Insert after "builder.Services.AddSwaggerGen();" in the Program.cs file. |
+|Ioc()| Generate code for the Ioc registration code snippet. |language: The programming language used to generate content, if not specified, C# will be used. tables: The name of the data table. If not specified, all tables are scanned. |Insert before "var app = builder.Build();" in the Program.cs file. |
 |WebAPIController()| Generates code for a WebAPI controller class. |language: The programming language used to generate content, if not specified, C# will be used. tables: The name of the data table. If not specified, all tables are scanned. nameSpace: namespace. If not specified the current project name is used. baseTypes: Inherited base class or implemented interface name. |~\Controllers|
 |ToFile()|Automatically save the generated code to the specified file directory, the default path is the project folder (Models\IRepositories). |targetPath: The target path of the file. If no path is specified, files will be created in directories such as "Models" and "IRepositories" under the project according to the CodeType. isCover: Whether to overwrite if a file with the same name exists in the path. The default is to not override.||
 |ToString()| Outputs the generated code as the characters contained in the Value of the Dictionary, where the Key in the Dictionary is the table name. |||
@@ -377,15 +378,11 @@ var result = vdb.GenerateCode()
 ```C#
 public static void Main(string[] args)
 {    
-    string _connString = "Server=192.168.110.100; Port=3306; Database=1d7b4b66158b41f38109dd100eb0d505; Uid=root; Pwd=123456; SslMode=Preferred;";
+    string _connString = "Server=192.168.110.100; Port=3306; Database=vdb_test; Uid=XXXX; Pwd=XXXXXX; SslMode=Preferred;";
     DbConnection conn = new MySqlConnection(_connString);
-    conn.Open();
+    CodeTool tool = new CodeTool(conn) { Language = ProgrammingLanguage.CSharp };
 
-    //var result1 = vdb.GenerateCode().Model().ToFile();
-    //var result2 = vdb.GenerateCode().IRepository().ToFile();
-    //var result3 = vdb.GenerateCode().Repository().ToFile();
-    //var result4 = vdb.GenerateCode().Ioc().ToFile();
-    //var result5 = vdb.GenerateCode().WebAPIController().ToFile();  
+    var result = tool.RegisterIoC().InsertFile();
 
     var builder = WebApplication.CreateBuilder(args);
 
@@ -401,6 +398,8 @@ public static void Main(string[] args)
     builder.Services.AddSingleton<IVDB, VDB>(vdb);
     builder.Services.AddScoped<IUserRepository, UserRepository>();
     ...
+
+    var app = builder.Build();
 ```
 ## Contact Us
 ***email:cnxl@hotmail.com, we will reply as soon as possible.***
@@ -742,17 +741,18 @@ using Voy.DALBase;
 using Voy.DALBase.Tools;
 using Voy.DALBase.Utils;
 
-var result = vdb.GenerateCode()
-    .Model(
-        tables:new string[] { "user" },
-        language: ProgrammingLanguage.CSharp
-        nameSpace: "MyProject", 
-        baseTypes: new string[] { "BaseModel" }, 
-        ignoredColumns: new string[] { "id" })
-    .ToFile(true);
+string _connString = "Server=192.168.110.100; Port=3306; Database=vdb_test; Uid=XXXX; Pwd=XXXXXX; SslMode=Preferred;";
+DbConnection conn = new MySqlConnection(_connString);
+CodeTool tool = new CodeTool(conn) { Language = ProgrammingLanguage.CSharp };
+
+var result1 = tool.CreateModel().ToFile();
+var result2 = tool.CreateIRepository().ToFile();
+var result3 = tool.CreateRepository().ToFile();
+var result4 = tool.RegisterIoC().InsertFile();
+var result5 = tool.CreateWebAPIController().ToFile();
 ```
-+ 可以使用VDB.GenerateCode()方法，根据数据表的结构来生成代码。
-+ 使用ToString()方法获得文字形式的代码。生成的代码输出为包含在Dictionary的Value中的字符，Dictionary中的Key是表名。
++ 可以根据数据表的结构，使用CodeTool的方法来生成代码。
++ 使用ToCodeString()方法获得文字形式的代码。生成的代码输出为包含在Dictionary的Value中的字符，Dictionary中的Key是表名。
 + 使用ToFile()方法可以让代码自动保存到指定的文件目录中，默认路径是项目的文件夹中或将生成的代码插入文件中。
 + 支持指定使用C#、Visual Basic等编程语言。
 + 支持生成数据模型类、资料库接口、资料库类、Ioc注册代码片段、WebAPI控制器类。
@@ -767,7 +767,7 @@ var result = vdb.GenerateCode()
 |Model()|生成数据模型类的代码。|language：生成内容使用的编程语言，如不指定将使用C#。tables：数据表的名称。如不指定则扫描全部表。nameSpace：命名空间。如不指定则使用当前项目名称。baseTypes：继承的基类或实现的接口名字。ignoredColumns：忽略的列。|~\Models|
 |IRepository()|生成资料库接口的代码。|language：生成内容使用的编程语言，如不指定将使用C#。tables：数据表的名称。如不指定则扫描全部表。nameSpace：命名空间。如不指定则使用当前项目名称。baseTypes：继承的基类或实现的接口名字。|~\IRepositories|
 |Repository()|生成资料库类的代码。|language：生成内容使用的编程语言，如不指定将使用C#。tables：数据表的名称。如不指定则扫描全部表。nameSpace：命名空间。如不指定则使用当前项目名称。baseTypes：继承的基类或实现的接口名字。|~\Repositories|
-|Ioc()|生成Ioc注册代码片段的代码。|language：生成内容使用的编程语言，如不指定将使用C#。tables：数据表的名称。如不指定则扫描全部表。|插入Program.cs文件中“builder.Services.AddSwaggerGen();”之后。|
+|Ioc()|生成Ioc注册代码片段的代码。|language：生成内容使用的编程语言，如不指定将使用C#。tables：数据表的名称。如不指定则扫描全部表。|插入Program.cs文件中“var app = builder.Build();”之前。|
 |WebAPIController()|生成WebAPI控制器类的代码。|language：生成内容使用的编程语言，如不指定将使用C#。tables：数据表的名称。如不指定则扫描全部表。nameSpace：命名空间。如不指定则使用当前项目名称。baseTypes：继承的基类或实现的接口名字。|~\Controllers|
 |ToFile()|将生成的代码自动保存到指定的文件目录中，默认路径是项目的文件夹中(Models\IRepositories)。|targetPath：文件的目标路径。如不指定路径，则会根据CodeType在项目下的“Models”、“IRepositories”等目录中创建文件。isCover：如果路径中存在同名文件，是否进行覆盖。默认为不覆盖。||
 |ToString()|将生成的代码输出为包含在Dictionary的Value中的字符，Dictionary中的Key是表名。|||
@@ -776,15 +776,11 @@ var result = vdb.GenerateCode()
 ```C#
 public static void Main(string[] args)
 {    
-    string _connString = "Server=192.168.110.100; Port=3306; Database=1d7b4b66158b41f38109dd100eb0d505; Uid=root; Pwd=123456; SslMode=Preferred;";
+    string _connString = "Server=192.168.110.100; Port=3306; Database=vdb_test; Uid=XXXX; Pwd=XXXXXX; SslMode=Preferred;";
     DbConnection conn = new MySqlConnection(_connString);
-    conn.Open();
+    CodeTool tool = new CodeTool(conn) { Language = ProgrammingLanguage.CSharp };
 
-    //var result1 = vdb.GenerateCode().Model().ToFile();
-    //var result2 = vdb.GenerateCode().IRepository().ToFile();
-    //var result3 = vdb.GenerateCode().Repository().ToFile();
-    //var result4 = vdb.GenerateCode().Ioc().ToFile();
-    //var result5 = vdb.GenerateCode().WebAPIController().ToFile();  
+    var result = tool.RegisterIoC().InsertFile();
 
     var builder = WebApplication.CreateBuilder(args);
 
@@ -800,6 +796,8 @@ public static void Main(string[] args)
     builder.Services.AddSingleton<IVDB, VDB>(vdb);
     builder.Services.AddScoped<IUserRepository, UserRepository>();
     ...
+
+    var app = builder.Build();
 ```
 ## 联系我们
 ***email:cnxl@hotmail.com，我们将尽快回复。***
