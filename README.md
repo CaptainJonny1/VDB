@@ -123,6 +123,30 @@ int d3 = del3.Execute();
 + When there are parameters and the Where statement is used for update filtering, the filter conditions will be combined with AND.
 + When there is no parameter and no Where statement is used for update filtering, the update operation will not be executed for data security.
 
+### Transaction
+```C#
+try
+{
+    vdb.BeginTransaction();
+    int? result = vdb.Insert<User>(u => new User { Name = "NewUser1", Age = 30 }).Execute();
+    int newId = result is null ? 0 : (int)result;
+    var query = vdb.Insert<Order>(new List<Order>
+    {
+            new Order { UserId=newId, Product = "NewProduct1", Amount = (decimal)10.10 },
+            new Order { UserId=newId, Product = "NewProduct2", Amount = (decimal)20.20 },
+            new Order { UserId=newId, Product = "NewProduct3", Amount = (decimal)30.30 },
+            new Order { UserId=newId, Product = "NewProduct4", Amount = (decimal)40.40 },
+            new Order { UserId=newId, Product = "NewProduct5", Amount = (decimal)50.50 },
+    }).Execute();
+    vdb.Commit();
+}
+catch (Exception ex)
+{
+    vdb.Rollback();
+    //Write to log;
+}
+```
+
 ### Select
 ```C#
 //Get all fields
@@ -374,7 +398,7 @@ var result5 = tool.CreateWebAPIController().ToFile();
 |ToFile()|Automatically save the generated code to the specified file directory, the default path is the project folder (Models\IRepositories). |targetPath: The target path of the file. If no path is specified, files will be created in directories such as "Models" and "IRepositories" under the project according to the CodeType. isCover: Whether to overwrite if a file with the same name exists in the path. The default is to not override.||
 |ToString()| Outputs the generated code as the characters contained in the Value of the Dictionary, where the Key in the Dictionary is the table name. |||
 
-### Ioc registration example
+### IoC registration example
 ```C#
 public static void Main(string[] args)
 {    
@@ -521,6 +545,30 @@ var del5 = vdb.Delete<User>(new User { Id = 1 }).Where(u => u.Name == "周八");
 + 使用实体对象为参数筛选记录时，如果对象的属性是数值型的默认值（例如int的0）则无效果，例如不要使用“new User { Age = 0 }”。
 + 当有参数，也使用Where语句进行更新筛选时，筛选条件将进行AND合并。
 + 当无参数，也没有使用Where语句进行更新筛选时，为了数据安全更新操作将不会被执行。
+
+### 事务
+```C#
+try
+{
+    vdb.BeginTransaction();
+    int? result = vdb.Insert<User>(u => new User { Name = "NewUser1", Age = 30 }).Execute();
+    int newId = result is null ? 0 : (int)result;
+    var query = vdb.Insert<Order>(new List<Order>
+    {
+            new Order { UserId=newId, Product = "NewProduct1", Amount = (decimal)10.10 },
+            new Order { UserId=newId, Product = "NewProduct2", Amount = (decimal)20.20 },
+            new Order { UserId=newId, Product = "NewProduct3", Amount = (decimal)30.30 },
+            new Order { UserId=newId, Product = "NewProduct4", Amount = (decimal)40.40 },
+            new Order { UserId=newId, Product = "NewProduct5", Amount = (decimal)50.50 },
+    }).Execute();
+    vdb.Commit();
+}
+catch (Exception ex)
+{
+    vdb.Rollback();
+    //Write to log;
+}
+```
 
 ### 查询
 ```C#
@@ -772,7 +820,7 @@ var result5 = tool.CreateWebAPIController().ToFile();
 |ToFile()|将生成的代码自动保存到指定的文件目录中，默认路径是项目的文件夹中(Models\IRepositories)。|targetPath：文件的目标路径。如不指定路径，则会根据CodeType在项目下的“Models”、“IRepositories”等目录中创建文件。isCover：如果路径中存在同名文件，是否进行覆盖。默认为不覆盖。||
 |ToString()|将生成的代码输出为包含在Dictionary的Value中的字符，Dictionary中的Key是表名。|||
 
-### Ioc注册示例
+### IoC注册示例
 ```C#
 public static void Main(string[] args)
 {    
