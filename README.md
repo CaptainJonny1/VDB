@@ -1,7 +1,7 @@
 # Voy.DALBase Readme
 [TOC]
 # English
-Simple ORM framework for MySql/Sql Server（Will add more） using lambda expressions.
+Simple ORM library for MySql/Sql Server/SQLite（Will add more） using lambda expressions.
 ## Install
 |||
 |-|-|
@@ -38,8 +38,8 @@ VDBSingleton.Instance.VDB = new VDB(conn);  //singleton mode.
 |Description||Get SQL statement|Get parameters of SQL statement|Execute data operation command|Execute data query command|Execute scalar query command|
 |-|-|:-:|:-:|:-:|:-:|:-:|
 ||Method|GetSQLString()|GetParams()|Execute()|GetData()|ExecuteScalar()|
-|Create database（Access/SQLite is not applicable）|CreateDatabase()|✓|✓|✓|||
-|Remove database（Access/SQLite is not applicable）|DropDatabase()|✓|✓|✓|||
+|Create database（Access is not applicable）|CreateDatabase()|✓|✓|✓|||
+|Remove database（Access is not applicable）|DropDatabase()|✓|✓|✓|||
 |Get table information in the database|GetDatabaseTables()|✓|✓||✓|✓|
 |Create data table|CreateTable()|✓|✓|✓|||
 |Remove data table|DropTable()|✓|✓|✓|||
@@ -216,6 +216,12 @@ var e2 = ExpressionTools.CreateExpression<User>(u => u.Age > 20);
 var exp = e1.And(e2);
 var v1 = vdb.Select<User>().Where(exp);
 ```
+#### Union primary key query
+```C#
+var query = vdb.Select<User, Order>()
+    .LeftJoin((u, o) => u.Id == o.UserId && u.Name == o.UserName)；
+var data = query.GetData();
+```
 #### Multi-column query
 Setting the second parameter "filterColumns" of the Where method to a "new expression" can achieve a more convenient multi-column query, so that the filter condition can be applied to all columns specified in the expression. For example:
 ```C#
@@ -227,8 +233,21 @@ var data = query.GetData();
 Suitable for querying infinitely hierarchical table structures. For example, the table contains a ParentId field, which is used to record the superior of the current record.
 Implementation:
 + Use the first expression parameter of "InnerJoin" to set the relationship between the identification field and its parent identification field, and set the condition for the end of recursion in the second expression parameter.
-+ The third expression is an optional parameter. If this parameter is set as an attribute mapped to a field, VDB will use this attribute as a condition to convert the query result into a tree structure.
++ The third expression is an optional parameter. If this parameter is set as an property mapped to a field, VDB will use this property as a condition to convert the query result into a tree structure.
++ The result of the spanning tree structure requires that the Model mapped by the main table contains a generic List collection property of the same type as the main table.
 + SQLServer has no limit to the recursion depth, and the maximum recursion depth of MySQL is 4,294,967,295.
+```C#
+    [Table("user")]
+    public class User
+    {
+        ···
+        public int Id { get; set; }
+        public int ParentId { get; set; }
+        ...
+        public List<User> Users { get; set; }        
+        public List<Order> Orders { get; set; }
+    }
+```
 ```C#
 var query = vdb.Select<User, Order>((u, o) => new { u.Id, u.ParentId, u.Name, u.ShowOrder, o.Product })
      .LeftJoin((u, o) => o.UserId == u.Id)
@@ -335,19 +354,20 @@ var query = vdb.Select<User, Order>()
 #### Table
 |Name|Description|Usage example|Namespace|
 |-|-|-|-|
-|Table|Indicates the database table to which the class will be mapped.|[Table("user_team")]|System.ComponentModel.DataAnnotations.Schema|
+|[Table]|Indicates the database table to which the class will be mapped.|[Table("user_team")]|System.ComponentModel.DataAnnotations.Schema|
 #### Column
 |Name|Description|Usage example|Namespace|
 |-|-|-|-|
-|Column|Indicates the database column to which the attribute will be mapped.|[Column("id", Order = 0, TypeName = "int")]|System.ComponentModel.DataAnnotations.Schema|
-|Computed|When a row is inserted or updated, the database generates a value.|[DatabaseGenerated(DatabaseGeneratedOption.Computed)]|System.ComponentModel.DataAnnotations.Schema|
-|Identity|Indicates that a property or class should be excluded from database mapping.|[DatabaseGenerated(DatabaseGeneratedOption.Identity)]|System.ComponentModel.DataAnnotations.Schema|
-|None|Represents one or more properties that uniquely identify an entity.|[DatabaseGenerated(DatabaseGeneratedOption.None)]|System.ComponentModel.DataAnnotations.Schema|
-|NotMapped|Specifying a data field value is required.|[NotMapped]|System.ComponentModel.DataAnnotations.Schema|
-|Key|Represents one or more properties that uniquely identify an entity.|[Key]|System.ComponentModel.DataAnnotations|
-|Required|Specifying a data field value is required.|[Required]|System.ComponentModel.DataAnnotations|
-|DefaultValue|Specifies the default value for the property.|[DefaultValue("CURRENT_TIMESTAMP")]|System.ComponentModel|
-|Description|Specifies a description for the property or event.|[Description("name")]|System.ComponentModel|
+|[Column]|Indicates the database column to which the attribute will be mapped.|[Column("id", Order = 0, TypeName = "int")]|System.ComponentModel.DataAnnotations.Schema|
+|[Computed]|When a row is inserted or updated, the database generates a value.|[DatabaseGenerated(DatabaseGeneratedOption.Computed)]|System.ComponentModel.DataAnnotations.Schema|
+|[DefaultValue]|Specifies the default value for the property.|[DefaultValue("CURRENT_TIMESTAMP")]|System.ComponentModel|
+|[Description]|Specifies a description for the property or event.|[Description("name")]|System.ComponentModel|
+|[ForeignKey]|specify which property is the foreign key in a relationship. On the foreign key property in the dependent class, passing in the name of the navigation property. |[ForeignKey("User")]|System.ComponentModel.DataAnnotations.Schema|
+|[Identity]|Indicates that a property or class should be excluded from database mapping.|[DatabaseGenerated(DatabaseGeneratedOption.Identity)]|System.ComponentModel.DataAnnotations.Schema|
+|[Key]|Represents one or more properties that uniquely identify an entity.|[Key]|System.ComponentModel.DataAnnotations|
+|[None]|Represents one or more properties that uniquely identify an entity.|[DatabaseGenerated(DatabaseGeneratedOption.None)]|System.ComponentModel.DataAnnotations.Schema|
+|[NotMapped]|Specifying a data field value is required.|[NotMapped]|System.ComponentModel.DataAnnotations.Schema|
+|[Required]|Specifying a data field value is required.|[Required]|System.ComponentModel.DataAnnotations|
 #### Description
 1. An int attribute with Key and Identity tags, and the mapped data column is an auto-growth column.
 1. The fields identified by Key and Required are required and do not need to be set repeatedly.
@@ -359,6 +379,27 @@ var query = vdb.Select<User, Order>()
 1. When inserting a record using an object instance, if the value of the attribute mapped to the timestamp type field is not set, it cannot be executed because the minimum time is automatically generated. Workaround 1. Set the property as a nullable type. 2. Change the timestamp to time type. 3. Set the attribute value of the field mapping within the range allowed by the timestamp.
 1. It is recommended to set the int type attribute (mostly seen in the Id field) to the self-growth (Identity tag) as the nullable type "int?", otherwise the field with a value of 0 will be included in the SQL insertion content, but it can be executed successfully .
 1. When inserting in batches, the attributes mapped to mandatory fields with default values must be set or not set at all. Because there is an object in the set of parameters with this field set, this field will appear in the SQL statement, and other records without this field cannot be executed successfully due to lack of parameters.
+1. ForeignKey Demo：
+```C#
+public class User
+{
+    public int Id { get; set; }
+    ...
+    public List<Order> Orders { get; set; }
+}
+
+public class Order
+{
+    public int OrderId { get; set; }
+    [ForeignKey("Seller")]
+    public int SellerId { get; set; }
+    [ForeignKey("Buyer")]
+    public int BuyerId { get; set; }
+    ...
+    public User Seller { get; set; }
+    public User Buyer { get; set; }
+}
+```
 
 ### DBFirst
 #### Example
@@ -406,7 +447,11 @@ public static void Main(string[] args)
     DbConnection conn = new MySqlConnection(_connString);
     CodeTool tool = new CodeTool(conn) { Language = ProgrammingLanguage.CSharp };
 
-    var result = tool.RegisterIoC().InsertFile();
+    var result1 = tool.CreateModel().ToFile();
+    var result2 = tool.CreateIRepository().ToFile();
+    var result3 = tool.CreateRepository().ToFile();
+    var result4 = tool.RegisterIoC(nameof(conn)).InsertFile();
+    var result5 = tool.CreateWebAPIController().ToFile();
 
     var builder = WebApplication.CreateBuilder(args);
 
@@ -417,6 +462,7 @@ public static void Main(string[] args)
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
 
+    // The following is the code automatically generated by "tool.RegisterIoC(nameof(conn)).InsertFile()".
     Func<IServiceProvider, VDB> vdb = r => new VDB(conn);
 
     builder.Services.AddSingleton<IVDB, VDB>(vdb);
@@ -429,7 +475,7 @@ public static void Main(string[] args)
 ***email:cnxl@hotmail.com, we will reply as soon as possible.***
 
 # 中文
-适用于MySql/Sql Server（将添加更多），可使用Lambda表达式的简单ORM框架。
+适用于MySql/Sql Server/SQLite（将添加更多），可使用Lambda表达式的简单ORM库。
 ## 安装
 |||
 |-|-|
@@ -466,8 +512,8 @@ VDBSingleton.Instance.VDB = new VDB(conn);  //单例模式。
 |说明||获取SQL语句|获取SQL语句的参数|执行数据操作命令|执行数据查询命令|执行标量查询命令|
 |-|-|:-:|:-:|:-:|:-:|:-:|
 ||方法|GetSQLString()|GetParams()|Execute()|GetData()|ExecuteScalar()|
-|创建数据库（Access/SQLite不适用）|CreateDatabase()|✓|✓|✓|||
-|移除数据库（Access/SQLite不适用）|DropDatabase()|✓|✓|✓|||
+|创建数据库（Access不适用）|CreateDatabase()|✓|✓|✓|||
+|移除数据库（Access不适用）|DropDatabase()|✓|✓|✓|||
 |获取数据库中的表信息|GetDatabaseTables()|✓|✓||✓|✓|
 |创建数据表|CreateTable()|✓|✓|✓|||
 |移除数据表|DropTable()|✓|✓|✓|||
@@ -639,6 +685,12 @@ var e2 = ExpressionTools.CreateExpression<User>(u => u.Age > 20);
 var exp = e1.And(e2);
 var v1 = vdb.Select<User>().Where(exp);
 ```
+#### 联合主键查询
+```C#
+var query = vdb.Select<User, Order>()
+    .LeftJoin((u, o) => u.Id == o.UserId && u.Name == o.UserName)；
+var data = query.GetData();
+```
 #### 多列查询
 将Where方法的第二个参数“filterColumns”设置为new表达式可以实现更方便的多列查询，这样可以将过滤条件应用到表达式中指定的全部列。例如：
 ```C#
@@ -651,7 +703,20 @@ var data = query.GetData();
 实现方法：
 + 使用“InnerJoin”的第一个表达式参数中设置标识字段与其父标识字段的关系，并在第二个表达式参数中设置递归结束的条件。
 + 第三个表达式为可选参数，如果设置该参数为一个字段映射的属性，VDB将使用该属性作为条件，将查询结果转化为树结构。
++ 生成树结构的结果要求主表映射的Model中包含有主表同类型的泛型List集合属性。
 + SQLServer没有递归深度的限制，MySQL最大递归深度为4,294,967,295。
+```C#
+    [Table("user")]
+    public class User
+    {
+        ···
+        public int Id { get; set; }
+        public int ParentId { get; set; }
+        ...
+        public List<User> Users { get; set; }        
+        public List<Order> Orders { get; set; }
+    }
+```
 ```C#
 var query = vdb.Select<User, Order>((u, o) => new { u.Id, u.ParentId, u.Name, u.ShowOrder, o.Product })
     .LeftJoin((u, o) => o.UserId == u.Id)
@@ -758,19 +823,20 @@ var query = vdb.Select<User, Order>()
 #### 数据表
 |名称|说明|使用示例|命名空间|
 |-|-|-|-|
-|Table|表示类将映射到的数据库表。|[Table("user_team")]|System.ComponentModel.DataAnnotations.Schema|
+|[Table]|表示类将映射到的数据库表。|[Table("user_team")]|System.ComponentModel.DataAnnotations.Schema|
 #### 数据列
 |名称|说明|使用示例|命名空间|
 |-|-|-|-|
-|Column|表示属性将映射到的数据库列。|[Column("id", Order = 0, TypeName = "int")]|System.ComponentModel.DataAnnotations.Schema|
-|Computed|在插入或更新一个行时，数据库会生成一个值。|[DatabaseGenerated(DatabaseGeneratedOption.Computed)]|System.ComponentModel.DataAnnotations.Schema|
-|Identity|在插入一个行时，数据库会生成一个值。|[DatabaseGenerated(DatabaseGeneratedOption.Identity)]|System.ComponentModel.DataAnnotations.Schema|
-|None|数据库不生成值。|[DatabaseGenerated(DatabaseGeneratedOption.None)]|System.ComponentModel.DataAnnotations.Schema|
-|NotMapped|表示应从数据库映射中排除属性或类。|[NotMapped]|System.ComponentModel.DataAnnotations.Schema|
-|Key|表示唯一标识实体的一个或多个属性。|[Key]|System.ComponentModel.DataAnnotations|
-|Required|指定数据字段值是必需的。|[Required]|System.ComponentModel.DataAnnotations|
-|DefaultValue|指定属性的默认值。|[DefaultValue("CURRENT_TIMESTAMP")]|System.ComponentModel|
-|Description|指定属性或事件的说明。|[Description("name")]|System.ComponentModel|
+|[Column]|表示属性将映射到的数据库列。|[Column("id", Order = 0, TypeName = "int")]|System.ComponentModel.DataAnnotations.Schema|
+|[Computed]|在插入或更新一个行时，数据库会生成一个值。|[DatabaseGenerated(DatabaseGeneratedOption.Computed)]|System.ComponentModel.DataAnnotations.Schema|
+|[DefaultValue]|指定属性的默认值。|[DefaultValue("CURRENT_TIMESTAMP")]|System.ComponentModel|
+|[Description]|指定属性或事件的说明。|[Description("name")]|System.ComponentModel|
+|[ForeignKey]|指定哪个属性是关系中的外键。在依赖类的外键属性上，传入导航属性的名称。|[ForeignKey("User")] |System.ComponentModel.DataAnnotations.Schema|
+|[Identity]|在插入一个行时，数据库会生成一个值。|[DatabaseGenerated(DatabaseGeneratedOption.Identity)]|System.ComponentModel.DataAnnotations.Schema|
+|[Key]|表示唯一标识实体的一个或多个属性。|[Key]|System.ComponentModel.DataAnnotations|
+|[None]|数据库不生成值。|[DatabaseGenerated(DatabaseGeneratedOption.None)]|System.ComponentModel.DataAnnotations.Schema|
+|[NotMapped]|表示应从数据库映射中排除属性或类。|[NotMapped]|System.ComponentModel.DataAnnotations.Schema|
+|[Required]|指定数据字段值是必需的。|[Required]|System.ComponentModel.DataAnnotations|
 #### 说明
 1. 设置了Key和Identity标签的int型属性，映射的数据列是自动增长列。
 1. Key、Required标识的字段均为必填，无需对同一个属性重复设置这两个特性。
@@ -782,6 +848,27 @@ var query = vdb.Select<User, Order>()
 1. 在使用对象实例插入记录时，如果没有设置映射为时间戳类型字段的属性的值，会由于自动生成了最小时间而无法执行。解决方法1.将属性设置为可空类型。2.时间戳改为时间类型。3.设置该字段映射的属性值在时间戳允许的范围内。
 1. 设置为自增长（Identity标签）的int类型的属性（多见于Id字段）建议设置为可空类型“int？”，否则会在sql插入内容中包括值为0的该字段，但是可以执行成功。
 1. 批量插入时，有默认值的必填字段映射的属性要全部设置或全部不设置数值。因为参数的集合中有一个对象设置了该字段，就会在SQL语句中出现该字段，其他未设置该字段的记录则因缺少参数而不能执行成功。
+1. ForeignKey示例：
+```C#
+public class User
+{
+    public int Id { get; set; }
+    ...
+    public List<Order> Orders { get; set; }
+}
+
+public class Order
+{
+    public int OrderId { get; set; }
+    [ForeignKey("Seller")]
+    public int SellerId { get; set; }
+    [ForeignKey("Buyer")]
+    public int BuyerId { get; set; }
+    ...
+    public User Seller { get; set; }
+    public User Buyer { get; set; }
+}
+```
 ### DBFirst
 #### 示例
 ```C#
@@ -828,7 +915,11 @@ public static void Main(string[] args)
     DbConnection conn = new MySqlConnection(_connString);
     CodeTool tool = new CodeTool(conn) { Language = ProgrammingLanguage.CSharp };
 
-    var result = tool.RegisterIoC().InsertFile();
+    var result1 = tool.CreateModel().ToFile();
+    var result2 = tool.CreateIRepository().ToFile();
+    var result3 = tool.CreateRepository().ToFile();
+    var result4 = tool.RegisterIoC(nameof(conn)).InsertFile();
+    var result5 = tool.CreateWebAPIController().ToFile();
 
     var builder = WebApplication.CreateBuilder(args);
 
@@ -839,6 +930,7 @@ public static void Main(string[] args)
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
 
+    // 以下为“tool.RegisterIoC(nameof(conn)).InsertFile()”自动生成的代码。
     Func<IServiceProvider, VDB> vdb = r => new VDB(conn);
 
     builder.Services.AddSingleton<IVDB, VDB>(vdb);
