@@ -60,7 +60,7 @@
 |`LeftJoin()`|Lambda expressions|∞|returns all records from the left table (table1), and the matching records from the right table (table2). The result is 0 records from the right side, if there is no match.|
 |`RightJoin()`|Lambda expressions|∞|returns all records from the right table (table2), and the matching records from the left table (table1). The result is 0 records from the left side, if there is no match.|
 |`FullOutJoin()`|Lambda expressions|∞|returns all records when there is a match in left (table1) or right (table2) table records.|
-|`Page()`|int pageIndex, int pageSize|1|The total number of records can be obtained using the "Count" property.|
+|`Page()`|int pageIndex, int pageSize|1|The total number of records can be obtained using the "Count" property.<br><font color=red>Note: SQLServer requires OrderBy sorting.</font>|
 + Methods can also be used multiple times, and the order of use is not required. The relationship between the filter conditions executed by multiple methods is And.
 + If there is an "OR" relationship, you can use the static method "Tools.ExpressionTools.CreateExpression<T>()" to create more flexible filter conditions as parameters. For example:
 ```C#
@@ -534,7 +534,7 @@ var result5 = codeTool.CreateWebAPIController().ToFile();
 |`LeftJoin()`|左联合查询|Lambda表达式|∞|即使右表中没有匹配，也从左表返回所有的行。|
 |`RightJoin()`|右联合查询|Lambda表达式|∞|即使左表中没有匹配，也从右表返回所有的行。|
 |`FullOutJoin()`||Lambda表达式|∞|只要其中一个表中存在匹配，则返回行。|
-|`Page()`|筛选结果的分页|int pageIndex, int pageSize|1|引用"Count"属性获得记录总数。|
+|`Page()`|筛选结果的分页|int pageIndex, int pageSize|1|引用"Count"属性获得记录总数。<br><font color=red>注意：SQLServer要求必须有OrderBy排序。</font>|
 + 以上方法可以多次使用，使用顺序无要求。多个方法执行的筛选条件之关系为And。
 + 如果有“OR”的关系可以使用静态方法`Voy.DALBase.Tools.ExpressionTools.CreateExpression<T>()`来创建更灵活的筛选条件作为参数。例如：
 ```C#
