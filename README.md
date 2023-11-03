@@ -38,15 +38,15 @@
 |`Delete()`|✓|✓|✓|||
 |`Update()`|✓|✓|✓|||
 |`Select()`|✓|✓||✓|✓|
-|`TableIsExist()`|✓|✓|✓|||
+|`TableIsExist()`|✓|✓||✓||
 |`CreateTableIfNotExist()`|✓|✓|✓|||
 |`DropTable()`|✓|✓|✓|||
-|`TruncateTable()`|✓|✓|✓|✓|✓|
-|`GetTableStructure()`|✓|✓||||
-|`DatabaseIsExist()`|✓|✓|✓|||
+|`TruncateTable()`|✓|✓|✓|||
+|`GetTableStructure()`|✓|✓||✓||
+|`DatabaseIsExist()`|✓|✓||✓||
 |`CreateDatabaseIfNotExist()`[^3]|✓|✓|✓|||
 |`DropDatabase()`[^3]|✓|✓|✓|||
-|`GetDatabaseTables()`|✓|✓||✓|✓|
+|`GetDatabaseTables()`|✓|✓||✓||
 #### SQL Clause expansion method list
 |Method|Parameter|Reusable times|Remark|
 |-|-|:-:|-|
@@ -116,10 +116,10 @@ VDBSingleton.Instance.VDB = new VDB(conn);  //singleton mode.
 + Nullable properties will have a null value inserted, non-nullable properties will have a default value inserted.
 ```C#
 //Insert data with Lambda expressions.
-int? ins1 = vdb.Insert<User>(u => new User { Name = "张三", Age = 30 }).Execute();
+int? ins1 = vdb.Insert<User>(u => new User { Name = "Tom", Age = 30 }).Execute();
 
 //Insert data with entity objects. (<TClass> can be omitted)
-int? ins2 = vdb.Insert(new User { Name = "李四", Age = 40 }).Execute();
+int? ins2 = vdb.Insert(new User { Name = "Jerry", Age = 40 }).Execute();
 
 //Insert multiple data.
 int? ins3 = vdb.Insert<User>(new List<User>
@@ -291,7 +291,7 @@ IEnumerable<User> result = vdb.Select<User>()
 #### Data model
 + Without specifying the data table/data column name, VDB will apply different naming rules to map class name -> data table name, attribute name -> data column name according to the mapped database brand.
 + Use the `[Table]` and `[Column]` tags on the class and attribute respectively to specify the mapped data table and data column.
-#####Default naming rules
+##### Default naming rules
 |Database Brand|Table Naming Rules|Table Name Examples|Column Naming Rules|Column Name Examples|
 |-|-|-|-|-|
 |MySQL|Lowercase letters and underscores|`UserSetting`->`` `user_setting` ``|Lowercase letters and underscores|`UserId`->`` `user_id` ``|
@@ -300,22 +300,22 @@ IEnumerable<User> result = vdb.Select<User>()
 |Access|Pascal|`UserSetting`->`[UserSetting]`|Camel|`UserId`->`[userId]`|
 |Oracle|Capital letters and underscores|`UserSetting`->`"USER_SETTING"`|Capital letters and underscores|`UserId`->`"USER_ID"`|
 ##### Instructions for using data table attribute labels
-|Name|Description|Usage Example|Namespace|
-|-|-|-|-|
-|`[Table]`|Represents the database table to which the class will be mapped. |`[Table("user_team")]`|System.ComponentModel.DataAnnotations.Schema|
+|Name|Description|
+|-|-|
+|`[Table]`|Represents the database table to which the class will be mapped. <br>Usage Example：`[Table("user_team")]`<br>Namespace：System.ComponentModel.DataAnnotations.Schema|
 ##### Instructions for using data column attribute labels
-|Name|Description|Usage Example|Namespace|
-|-|-|-|-|
-|`[Column]`|Represents the database column to which the attribute will be mapped. |[`Column("id", Order = 0, TypeName = "int")`]|System.ComponentModel.DataAnnotations.Schema|
-|`[Computed]`|When a row is inserted or updated, the database generates a value. |`[DatabaseGenerated(DatabaseGeneratedOption.Computed)]`|System.ComponentModel.DataAnnotations.Schema|
-|`[DefaultValue]`|Specifies the default value of the attribute. |`[DefaultValue("CURRENT_TIMESTAMP")]`|System.ComponentModel|
-|`[Description]`|Specifies the description of the property or event. |`[Description("name")]`|System.ComponentModel|
-|`[ForeignKey]`|Specifies which property is the foreign key in the relationship. On the foreign key property of the dependent class, pass in the name of the navigation property. |`[ForeignKey("User")]`|System.ComponentModel.DataAnnotations.Schema|
-|`[Identity]`|When a row is inserted, the database generates a value. |`[DatabaseGenerated(DatabaseGeneratedOption.Identity)]`|System.ComponentModel.DataAnnotations.Schema|
-|`[Key]`|Represents one or more attributes that uniquely identify an entity. |`[Key]`|System.ComponentModel.DataAnnotations|
-|`[None]`|The database does not generate a value. |`[DatabaseGenerated(DatabaseGeneratedOption.None)]`|System.ComponentModel.DataAnnotations.Schema|
-|`[NotMapped]`| Indicates that a property or class should be excluded from database mapping. |`[NotMapped]`|System.ComponentModel.DataAnnotations.Schema|
-|`[Required]`|The specified data field value is required. |`[Required]`|System.ComponentModel.DataAnnotations|
+|Name|Description|
+|-|-|
+|`[Column]`|Represents the database column to which the attribute will be mapped. <br>Usage Example：`[Column("id", Order = 0, TypeName = "int")`]<br>Namespace：System.ComponentModel.DataAnnotations.Schema|
+|`[Computed]`|When a row is inserted or updated, the database generates a value. <br>Usage Example：`[DatabaseGenerated(DatabaseGeneratedOption.Computed)]`<br>Namespace：System.ComponentModel.DataAnnotations.Schema|
+|`[DefaultValue]`|Specifies the default value of the attribute. <br>Usage Example：`[DefaultValue("CURRENT_TIMESTAMP")]`<br>Namespace：System.ComponentModel|
+|`[Description]`|Specifies the description of the property or event. <br>Usage Example：`[Description("name")]`<br>Namespace：System.ComponentModel|
+|`[ForeignKey]`|Specifies which property is the foreign key in the relationship. On the foreign key property of the dependent class, pass in the name of the navigation property. <br>Usage Example：`[ForeignKey("User")]`<br>Namespace：System.ComponentModel.DataAnnotations.Schema|
+|`[Identity]`|When a row is inserted, the database generates a value. <br>Usage Example：`[DatabaseGenerated(DatabaseGeneratedOption.Identity)]`<br>Namespace：System.ComponentModel.DataAnnotations.Schema|
+|`[Key]`|Represents one or more attributes that uniquely identify an entity. <br>Usage Example：`[Key]`<br>Namespace：System.ComponentModel.DataAnnotations|
+|`[None]`|The database does not generate a value. <br>Usage Example：`[DatabaseGenerated(DatabaseGeneratedOption.None)]`<br>Namespace：System.ComponentModel.DataAnnotations.Schema|
+|`[NotMapped]`| Indicates that a property or class should be excluded from database mapping. <br>Usage Example：`[NotMapped]`<br>Namespace：System.ComponentModel.DataAnnotations.Schema|
+|`[Required]`|The specified data field value is required. <br>Usage Example：`[Required]`<br>Namespace：System.ComponentModel.DataAnnotations|
 ##### Usage examples
 ```C#
      /// <summary>
@@ -365,17 +365,17 @@ IEnumerable<User> result = vdb.Select<User>()
          public DateTime? CreateTime { get; set; }
      }
 ```
-1. The int attributes of the Key and Identity tags are set, and the mapped data columns are auto-growing columns.
-1. The fields identified by Key and Required are required. There is no need to repeatedly set these two properties for the same attribute.
-1. The Identity label (automatic growth) only takes effect for columns of int type. After DefaultValue is set for non-int type columns, the Identity label will be ignored.
-1. If the attribute mapping column of the Computed tag is set, the default value will be calculated during both insertion and update. If the Computed label is not set, the default value will only be calculated during insertion.
-1. If the attribute of the Column tag is not set, the attribute name will be used to generate the column name in the corresponding form according to the database brand, and the corresponding column type and default maximum length will also be generated according to the data type of the attribute.
-1. If the value of a required item is not set when inserting data, and the item does not have a default value, the Insert statement will automatically increase the default value of the item type based on the content of "TypeName". If TypeName is not set, the closest field type will be assigned based on the attribute type.
+1. The int attributes of the `[Key]` and `[Identity]` labels are set, and the mapped data columns are auto-growing columns.
+1. The fields identified by `[Key]` and `[Required]` are required. There is no need to repeatedly set these two properties for the same attribute.
+1. The `[Identity]` tag (automatic growth) only takes effect for int type columns. After setting DefaultValue for non-int type columns, the `[Identity]` tag will be ignored.
+1. For attribute mapping columns with the `[Computed]` tag set, the default value will be calculated during both insertion and update. The default value without `[Computed]` will only be calculated during insertion.
+1. If the attribute of the `[Column]` tag is not set, the attribute name will be used to generate the column name in the corresponding form according to the database brand, and the corresponding column type and default maximum length will also be generated according to the data type of the attribute.
+1. If the value of a required item is not set when inserting data, and the item does not have a default value, the Insert statement will automatically increase the default value of the item type based on the content of `TypeName`. If `TypeName` is not set, the closest field type will be assigned based on the attribute type.
 1. When using entity classes to insert records, it is recommended to set all mapped attributes to nullable types. The reason is that non-null attributes in entity classes will automatically generate default values, and fields with values will be added to the SQL statement.
 1. When inserting records using an object instance, if the value of the attribute mapped to a timestamp type field is not set, execution will fail because the minimum time is automatically generated. Solution 1. Set the property to a nullable type. 2. Change the timestamp to time type. 3. Set the attribute value mapped by this field to be within the range allowed by the timestamp.
-1. It is recommended to set the int type attribute (mostly found in the Id field) that is set to self-increasing (Identity tag) to the nullable type "int?", otherwise the field with a value of 0 will be included in the SQL insertion content, but it can be executed success.
+1. It is recommended to set the int type attribute (mostly found in the Id field) that is set to auto-increment (using the `[Identity]` tag) to the nullable type "int?", otherwise the sql insertion content will include a value of 0 This field, however, can be executed successfully.
 1. When inserting in batches, all attributes mapped to required fields with default values must be set or none of the values must be set. Because there is an object in the parameter collection that has this field set, this field will appear in the SQL statement, and other records that do not have this field set will not be executed successfully due to lack of parameters.
-1. ForeignKey example:
+1. `[ForeignKey]` example:
 ```C#
 public class User
 {
@@ -431,7 +431,7 @@ IEnumerable<dynamic> result = vdb.GetTableStructure("user").GetData();
 |`IgnoredColumns`|Columns to be ignored|`string[]`|None|
 |`NameSpace`|Namespace|`string`|Current project name|
 |`BaseTypes`|Base class or interface|`string[]`|None|
-|`Language`|The programming language used to generate content|`ProgrammingLanguage`|C#|
+|`Language`|The programming language used to generate content|`ProgrammingLanguage`|CSharp|
 ```C#
 var codeTool = new CodeTool(conn);
 codeTool.Language = ProgrammingLanguage.CSharp; //If not specified, C# will be used.
@@ -439,7 +439,7 @@ codeTool.NameSpace = "MyDemo"; // If not specified, the current project name wil
 ```
 |Method|Method description|Parameters|Parameter description|Type|Default value|
 |-|-|-|-|-|-|
-|`ToCodeString()`|Output the generated results to a string|||||
+|`ToCodeString()`|Output the generated results to a string|None||||
 |`ToFile()`|Save the generated results to a file|`overwrite`|Whether to overwrite the file with the same name|`bool`|`false`|
 |||`targetPath`|The path to save the generated file|`string`|The corresponding folder in the current working directory of the application|
 |`InsertFile()`|Insert the generated results into an existing file|`targetPath`|The saving path of the file where the code needs to be inserted|`string`|`var app = of the `Program.cs` file in the current working directory of the application builder.Build();`After statement|
@@ -504,22 +504,21 @@ var result5 = codeTool.CreateWebAPIController().ToFile();
 [^2]: 需要安装 [Voy.Toolks](https://www.nuget.org/packages/Voy.Tools/)。
 ### 使用
 #### SQL 语句扩展方法列表
-|说明||获取SQL语句|获取SQL语句的参数|执行数据操作命令|执行数据查询命令|执行标量查询命令|
-|-|-|:-:|:-:|:-:|:-:|:-:|
-||方法|`GetSQLString()`|`GetParams()`|`Execute()`|`GetData()`|`ExecuteScalar()`|
-|插入数据|`Insert()`|✓|✓|✓|||
-|删除数据|`Delete()`|✓|✓|✓|||
-|更新数据|`Update()`|✓|✓|✓|||
-|查询数据|`Select()`|✓|✓||✓|✓|
-|检查数据表是否存在|`TableIsExist()`|✓|✓|✓|||
-|创建数据表|`CreateTableIfNotExist()`|✓|✓|✓|||
-|移除数据表|`DropTable()`|✓|✓|✓|||
-|清空数据表|`TruncateTable()`|✓|✓|✓|✓|✓|
-|获取数据表架构信息|`GetTableStructure()`|✓|✓||||
-|检查数据库是否存在|`DatabaseIsExist()`|✓|✓|✓|||
-|创建数据库[^3]|`CreateDatabaseIfNotExist()`|✓|✓|✓|||
-|移除数据库[^3]|`DropDatabase()`|✓|✓|✓|||
-|获取数据库架构信息|`GetDatabaseTables()`|✓|✓||✓|✓|
+|方法说明|`GetSQLString()`<br>获取SQL语句|`GetParams()`<br>获取SQL语句的参数<br>|执行数据操作命令<br>`Execute()`|执行数据查询命令<br>`GetData()`|执行标量查询命令<br>`ExecuteScalar()`|
+|-|:-:|:-:|:-:|:-:|:-:|
+|`Insert()`<br>插入数据|✓|✓|✓|||
+|`Delete()`<br>删除数据|✓|✓|✓|||
+|`Update()`<br>更新数据|✓|✓|✓|||
+|`Select()`<br>查询数据|✓|✓||✓|✓|
+|`TableIsExist()`<br>检查数据表是否存在|✓|✓||✓||
+|`CreateTableIfNotExist()`<br>创建数据表|✓|✓|✓|||
+|`DropTable()`<br>移除数据表|✓|✓|✓|||
+|`TruncateTable()`<br>清空数据表|✓|✓|✓|||
+|`GetTableStructure()`<br>获取数据表架构信息|✓|✓||✓||
+|`DatabaseIsExist()`<br>检查数据库是否存在|✓|✓||✓||
+|`CreateDatabaseIfNotExist()`[^3]<br>创建数据库|✓|✓|✓|||
+|`DropDatabase()`[^3]<br>移除数据库|✓|✓|✓|||
+|`GetDatabaseTables()`<br>获取数据库架构信息|✓|✓||✓||
 
 [^3]: Access不适用
 #### SQL 子句扩展方法列表
@@ -777,22 +776,22 @@ IEnumerable<User> result = vdb.Select<User>()
 |Access|Pascal|`UserSetting`->`[UserSetting]`|Camel|`UserId`->`[userId]`|
 |Oracle|大写字母与下划线|`UserSetting`->`"USER_SETTING"`|大写字母与下划线|`UserId`->`"USER_ID"`|
 ##### 数据表特性标签使用说明
-|名称|说明|使用示例|命名空间|
-|-|-|-|-|
-|`[Table]`|表示类将映射到的数据库表。|`[Table("user_team")]`|System.ComponentModel.DataAnnotations.Schema|
+|名称|说明|
+|-|-|
+|`[Table]`|表示类将映射到的数据库表。<br>使用示例：`[Table("user_team")]`<br>命名空间：System.ComponentModel.DataAnnotations.Schema|
 ##### 数据列特性标签使用说明
-|名称|说明|使用示例|命名空间|
-|-|-|-|-|
-|`[Column]`|表示属性将映射到的数据库列。|[`Column("id", Order = 0, TypeName = "int")`]|System.ComponentModel.DataAnnotations.Schema|
-|`[Computed]`|在插入或更新一个行时，数据库会生成一个值。|`[DatabaseGenerated(DatabaseGeneratedOption.Computed)]`|System.ComponentModel.DataAnnotations.Schema|
-|`[DefaultValue]`|指定属性的默认值。|`[DefaultValue("CURRENT_TIMESTAMP")]`|System.ComponentModel|
-|`[Description]`|指定属性或事件的说明。|`[Description("name")]`|System.ComponentModel|
-|`[ForeignKey]`|指定哪个属性是关系中的外键。在依赖类的外键属性上，传入导航属性的名称。|`[ForeignKey("User")]`|System.ComponentModel.DataAnnotations.Schema|
-|`[Identity]`|在插入一个行时，数据库会生成一个值。|`[DatabaseGenerated(DatabaseGeneratedOption.Identity)]`|System.ComponentModel.DataAnnotations.Schema|
-|`[Key]`|表示唯一标识实体的一个或多个属性。|`[Key]`|System.ComponentModel.DataAnnotations|
-|`[None]`|数据库不生成值。|`[DatabaseGenerated(DatabaseGeneratedOption.None)]`|System.ComponentModel.DataAnnotations.Schema|
-|`[NotMapped]`|表示应从数据库映射中排除属性或类。|`[NotMapped]`|System.ComponentModel.DataAnnotations.Schema|
-|`[Required]`|指定数据字段值是必需的。|`[Required]`|System.ComponentModel.DataAnnotations|
+|名称|说明|
+|-|-|
+|`[Column]`|表示属性将映射到的数据库列。<br>使用示例：`[Column("id", Order = 0, TypeName = "int")`]<br>命名空间：System.ComponentModel.DataAnnotations.Schema|
+|`[Computed]`|在插入或更新一个行时，数据库会生成一个值。<br>使用示例：`[DatabaseGenerated(DatabaseGeneratedOption.Computed)]`<br>命名空间：System.ComponentModel.DataAnnotations.Schema|
+|`[DefaultValue]`|指定属性的默认值。<br>使用示例：`[DefaultValue("CURRENT_TIMESTAMP")]`<br>命名空间：System.ComponentModel|
+|`[Description]`|指定属性或事件的说明。<br>使用示例：`[Description("name")]`<br>命名空间：System.ComponentModel|
+|`[ForeignKey]`|指定哪个属性是关系中的外键。在依赖类的外键属性上，传入导航属性的名称。<br>使用示例：`[ForeignKey("User")]`<br>命名空间：System.ComponentModel.DataAnnotations.Schema|
+|`[Identity]`|在插入一个行时，数据库会生成一个值。<br>使用示例：`[DatabaseGenerated(DatabaseGeneratedOption.Identity)]`<br>命名空间：System.ComponentModel.DataAnnotations.Schema|
+|`[Key]`|表示唯一标识实体的一个或多个属性。<br>使用示例：`[Key]`<br>命名空间：System.ComponentModel.DataAnnotations|
+|`[None]`|数据库不生成值。<br>使用示例：`[DatabaseGenerated(DatabaseGeneratedOption.None)]`<br>命名空间：System.ComponentModel.DataAnnotations.Schema|
+|`[NotMapped]`|表示应从数据库映射中排除属性或类。<br>使用示例：`[NotMapped]`<br>命名空间：System.ComponentModel.DataAnnotations.Schema|
+|`[Required]`|指定数据字段值是必需的。<br>使用示例：`[Required]`<br>命名空间：System.ComponentModel.DataAnnotations|
 ##### 使用示例
 ```C#
     /// <summary>
@@ -842,17 +841,17 @@ IEnumerable<User> result = vdb.Select<User>()
         public DateTime? CreateTime { get; set; }
     }
 ```
-1. 设置了Key和Identity标签的int型属性，映射的数据列是自动增长列。
-1. Key、Required标识的字段均为必填，无需对同一个属性重复设置这两个特性。
-1. Identity标签（自动增长）只对int类型的列生效，非int类型列设置DefaultValue后，将忽略Identity标签。
-1. 设置了Computed标签的属性映射列，在插入和更新时默认值均会被计算，没有设置Computed的默认值只在插入时计算。
-1. 没有设置Column标签的属性，会根据数据库品牌，用属性名生成相应形式的列名，也会根据属性的数据类型生成相应的列类型及默认最大长度。
-1. 插入数据时如果没有设置必填项的数值，该项目也没有默认值，Insert语句将根据“TypeName”的内容自动增加该项目类型的默认值。如果没有设置TypeName，则会根据属性类型分配最接近的字段类型。
+1. 设置了`[Key]`和`[Identity]`标签的int型属性，映射的数据列是自动增长列。
+1. `[Key]`、`[Required]`标识的字段均为必填，无需对同一个属性重复设置这两个特性。
+1. `[Identity]`标签（自动增长）只对int类型的列生效，非int类型列设置DefaultValue后，将忽略`[Identity]`标签。
+1. 设置了`[Computed]`标签的属性映射列，在插入和更新时默认值均会被计算，没有设置`[Computed]`的默认值只在插入时计算。
+1. 没有设置`[Column]`标签的属性，会根据数据库品牌，用属性名生成相应形式的列名，也会根据属性的数据类型生成相应的列类型及默认最大长度。
+1. 插入数据时如果没有设置必填项的数值，该项目也没有默认值，Insert语句将根据`TypeName`的内容自动增加该项目类型的默认值。如果没有设置`TypeName`，则会根据属性类型分配最接近的字段类型。
 1. 使用实体类插入记录时，推荐将映射的属性全部设置为可空类型。原因是实体类里的非空属性会自动产生默认值，有值的字段都会加入SQL语句中。
 1. 在使用对象实例插入记录时，如果没有设置映射为时间戳类型字段的属性的值，会由于自动生成了最小时间而无法执行。解决方法1.将属性设置为可空类型。2.时间戳改为时间类型。3.设置该字段映射的属性值在时间戳允许的范围内。
-1. 设置为自增长（Identity标签）的int类型的属性（多见于Id字段）建议设置为可空类型“int？”，否则会在sql插入内容中包括值为0的该字段，但是可以执行成功。
+1. 设置为自增长（使用了`[Identity]`标签）的int类型的属性（多见于Id字段）建议设置为可空类型“int？”，否则会在sql插入内容中包括值为0的该字段，但是可以执行成功。
 1. 批量插入时，有默认值的必填字段映射的属性要全部设置或全部不设置数值。因为参数的集合中有一个对象设置了该字段，就会在SQL语句中出现该字段，其他未设置该字段的记录则因缺少参数而不能执行成功。
-1. ForeignKey示例：
+1. `[ForeignKey]`示例：
 ```C#
 public class User
 {
@@ -908,7 +907,7 @@ IEnumerable<dynamic> result = vdb.GetTableStructure("user").GetData();
 |`IgnoredColumns`|需要忽略的列|`string[]`|无|
 |`NameSpace`|命名空间|`string`|当前项目名称|
 |`BaseTypes`|基类或接口|`string[]`|无|
-|`Language`|生成内容使用的编程语言|`ProgrammingLanguage`|C#|
+|`Language`|生成内容使用的编程语言|`ProgrammingLanguage`|CSharp|
 ```C#
 var codeTool = new CodeTool(conn);
 codeTool.Language = ProgrammingLanguage.CSharp; //如不指定则使用C#。
@@ -916,7 +915,7 @@ codeTool.NameSpace = "MyDemo";  // 如不指定则使用当前项目名称。
 ```
 |方法|方法说明|参数|参数说明|类型|默认值|
 |-|-|-|-|-|-|
-|`ToCodeString()`|将生成结果输出至字符串|||||
+|`ToCodeString()`|将生成结果输出至字符串|无||||
 |`ToFile()`|将生成结果保存至文件|`overwrite`|是否覆盖同名文件|`bool`|`false`|
 |||`targetPath`|生成文件的保存路径|`string`|应用程序当前工作目录下的相应文件夹|
 |`InsertFile()`|将生成结果插入已有文件|`targetPath`|需要插入代码的文件的保存路径|`string`|应用程序当前工作目录下的`Program.cs`文件的`var app = builder.Build();`语句之后|
