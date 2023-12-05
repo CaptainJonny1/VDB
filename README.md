@@ -60,7 +60,7 @@
 |`LeftJoin()`|Lambda expressions|∞|returns all records from the left table (table1), and the matching records from the right table (table2). The result is 0 records from the right side, if there is no match.|
 |`RightJoin()`|Lambda expressions|∞|returns all records from the right table (table2), and the matching records from the left table (table1). The result is 0 records from the left side, if there is no match.|
 |`FullOutJoin()`|Lambda expressions|∞|returns all records when there is a match in left (table1) or right (table2) table records.|
-|`Page()`|int pageIndex, int pageSize|1|The total number of records can be obtained using the "Count" property.<br><font color=red>Note: SQL Server requires version 2012 and higher, and OrderBy sorting is required.</font>|
+|`Page()`|int pageIndex, int pageSize|1|The total number of records can be obtained using the "Count" property.<br>***Note: SQL Server requires version 2012 and higher, and OrderBy sorting is required.***|
 + Methods can also be used multiple times, and the order of use is not required. The relationship between the filter conditions executed by multiple methods is And.
 + If there is an "OR" relationship, you can use the static method "Tools.ExpressionTools.CreateExpression<T>()" to create more flexible filter conditions as parameters. For example:
 ```C#
@@ -244,6 +244,7 @@ Suitable for querying infinite hierarchical table structures. For example, the t
 + Use the first expression parameter of "InnerJoin" to set the relationship between the identity field and its parent identity field, and set the condition for the recursion to end in the second expression parameter.
 + The third expression is an optional parameter. If this parameter is set to a field mapping attribute, VDB will use this attribute as a condition to convert the query results into a tree structure.
 + The result of the spanning tree structure requires that the Model mapped by the main table contains a generic List collection attribute of the same type as the main table.
++ Applicable to SQLServer2005, MySql8.0 (Released in 2018), SQLite 3.8.3 (Released in 2014-02-03) and newer versions.
 + Maximum recursion depth: SQLServer has no limit on the recursion depth. It is 4,294,967,295 for MySQL and 1000 for SQLite.
 ```C#
      [Table("user")]
@@ -423,6 +424,11 @@ IEnumerable<dynamic> result = vdb.GetTableStructure("user").GetData();
 + Create .NET source files at the specified location through the code tool (`CodeTool`) object.
 + You can specify parameters such as the language used in the source file (C#, VB.net, F#), whether to overwrite the file with the same name (not overwritten by default), and the saving location.
 ##### Instantiation tool
+```C#
+var codeTool = new CodeTool(conn);
+codeTool.Language = ProgrammingLanguage.CSharp; //If not specified, C# will be used.
+codeTool.NameSpace = "MyDemo"; // If not specified, the current project name will be used.
+```
 |Parameters of CodeTool|Description|Type|Default value|
 |-|-|-|-|
 |`Connection`|Data Connection|`DbConnection`|None|
@@ -432,26 +438,15 @@ IEnumerable<dynamic> result = vdb.GetTableStructure("user").GetData();
 |`NameSpace`|Namespace|`string`|Current project name|
 |`BaseTypes`|Base class or interface|`string[]`|None|
 |`Language`|The programming language used to generate content|`ProgrammingLanguage`|CSharp|
-```C#
-var codeTool = new CodeTool(conn);
-codeTool.Language = ProgrammingLanguage.CSharp; //If not specified, C# will be used.
-codeTool.NameSpace = "MyDemo"; // If not specified, the current project name will be used.
-```
-|Method|Method description|Parameters|Parameter description|Type|Default value|
-|-|-|-|-|-|-|
-|`ToCodeString()`|Output the generated results to a string|None||||
-|`ToFile()`|Save the generated results to a file|`overwrite`|Whether to overwrite the file with the same name|`bool`|`false`|
-|||`targetPath`|The path to save the generated file|`string`|The corresponding folder in the current working directory of the application|
-|`InsertFile()`|Insert the generated results into an existing file|`targetPath`|The saving path of the file where the code needs to be inserted|`string`|`var app = of the `Program.cs` file in the current working directory of the application builder.Build();`After statement|
 ##### Create Model based on data table (DB First)
 ```C#
 var result1 = codeTool.CreateModel().ToFile();
 ```
-##### Create warehouse interface
+##### Create warehouse interface based on the data table
 ```C#
 var result2 = codeTool.CreateIRepository().ToFile();
 ```
-##### Create warehouse
+##### Create warehouse based on the data table
 ```C#
 var result3 = codeTool.CreateRepository().ToFile();
 ```
@@ -459,10 +454,16 @@ var result3 = codeTool.CreateRepository().ToFile();
 ```C#
 var result4 = codeTool.RegisterIoC().InsertFile();
 ```
-##### Create WebAPIController
+##### Create WebAPIController based on the data table
 ```C#
 var result5 = codeTool.CreateWebAPIController().ToFile();
 ```
+|Method|Method description|Parameters|Parameter description|Type|Default value|
+|-|-|-|-|-|-|
+|`ToCodeString()`|Output the generated results to a string|None||||
+|`ToFile()`|Save the generated results to a file|`overwrite`|Whether to overwrite the file with the same name|`bool`|`false`|
+|||`targetPath`|The path to save the generated file|`string`|The corresponding folder in the current working directory of the application|
+|`InsertFile()`|Insert the generated results into an existing file|`targetPath`|The saving path of the file where the code needs to be inserted|`string`|After the `var app = builder.Build();` statement in the `Program.cs` file in the current working directory of the application|
 ## Contact information
 ***email:cnxl@hotmail.com, we will reply as soon as possible.***
 
@@ -534,7 +535,7 @@ var result5 = codeTool.CreateWebAPIController().ToFile();
 |`LeftJoin()`|左联合查询|Lambda表达式|∞|即使右表中没有匹配，也从左表返回所有的行。|
 |`RightJoin()`|右联合查询|Lambda表达式|∞|即使左表中没有匹配，也从右表返回所有的行。|
 |`FullOutJoin()`||Lambda表达式|∞|只要其中一个表中存在匹配，则返回行。|
-|`Page()`|筛选结果的分页|int pageIndex, int pageSize|1|引用"Count"属性获得记录总数。<br><font color=red>注意：SQLServer要求版本2012及更高，必须有OrderBy排序。</font>|
+|`Page()`|筛选结果的分页|int pageIndex, int pageSize|1|引用"Count"属性获得记录总数。<br>***注意：SQLServer要求版本2012及更高，必须有OrderBy排序。***|
 + 以上方法可以多次使用，使用顺序无要求。多个方法执行的筛选条件之关系为And。
 + 如果有“OR”的关系可以使用静态方法`Voy.DALBase.Tools.ExpressionTools.CreateExpression<T>()`来创建更灵活的筛选条件作为参数。例如：
 ```C#
@@ -719,6 +720,7 @@ IEnumerable<User> result = vdb.Select<User, Order>()
 + 使用“InnerJoin”的第一个表达式参数中设置标识字段与其父标识字段的关系，并在第二个表达式参数中设置递归结束的条件。
 + 第三个表达式为可选参数，如果设置该参数为一个字段映射的属性，VDB将使用该属性作为条件，将查询结果转化为树结构。
 + 生成树结构的结果要求主表映射的Model中包含有主表同类型的泛型List集合属性。
++ 适用于SQLServer2005、MySql8.0（2018年发布）、SQLite 3.8.3（2014-02-03发布）及更新版本。
 + 最大递归深度：SQLServer没有递归深度的限制，MySQL为4,294,967,295，SQLite为1000。
 ```C#
     [Table("user")]
@@ -899,6 +901,11 @@ IEnumerable<dynamic> result = vdb.GetTableStructure("user").GetData();
 + 通过代码工具（`CodeTool`）对象，在指定位置创建.NET源文件。
 + 可指定源文件中使用的语种（C#、VB.net、F#）、是否覆盖同名文件（默认不覆盖）和保存位置等参数。
 ##### 实例化工具
+```C#
+var codeTool = new CodeTool(conn);
+codeTool.Language = ProgrammingLanguage.CSharp; //如不指定则使用C#。
+codeTool.NameSpace = "MyDemo";  // 如不指定则使用当前项目名称。
+```
 |CodeTool 的参数|说明|类型|默认值|
 |-|-|-|-|
 |`Connection`|数据连接|`DbConnection`|无|
@@ -908,26 +915,15 @@ IEnumerable<dynamic> result = vdb.GetTableStructure("user").GetData();
 |`NameSpace`|命名空间|`string`|当前项目名称|
 |`BaseTypes`|基类或接口|`string[]`|无|
 |`Language`|生成内容使用的编程语言|`ProgrammingLanguage`|CSharp|
-```C#
-var codeTool = new CodeTool(conn);
-codeTool.Language = ProgrammingLanguage.CSharp; //如不指定则使用C#。
-codeTool.NameSpace = "MyDemo";  // 如不指定则使用当前项目名称。
-```
-|方法|方法说明|参数|参数说明|类型|默认值|
-|-|-|-|-|-|-|
-|`ToCodeString()`|将生成结果输出至字符串|无||||
-|`ToFile()`|将生成结果保存至文件|`overwrite`|是否覆盖同名文件|`bool`|`false`|
-|||`targetPath`|生成文件的保存路径|`string`|应用程序当前工作目录下的相应文件夹|
-|`InsertFile()`|将生成结果插入已有文件|`targetPath`|需要插入代码的文件的保存路径|`string`|应用程序当前工作目录下的`Program.cs`文件的`var app = builder.Build();`语句之后|
 ##### 根据数据表创建Model（DB First）
 ```C#
 var result1 = codeTool.CreateModel().ToFile();
 ```
-##### 创建仓库接口
+##### 根据数据表创建仓库接口
 ```C#
 var result2 = codeTool.CreateIRepository().ToFile();
 ```
-##### 创建仓库
+##### 根据数据表创建仓库
 ```C#
 var result3 = codeTool.CreateRepository().ToFile();
 ```
@@ -935,9 +931,15 @@ var result3 = codeTool.CreateRepository().ToFile();
 ```C#
 var result4 = codeTool.RegisterIoC().InsertFile();
 ```
-##### 创建WebAPIController
+##### 根据数据表创建WebAPIController
 ```C#
 var result5 = codeTool.CreateWebAPIController().ToFile();
 ```
+|方法|方法说明|参数|参数说明|类型|默认值|
+|-|-|-|-|-|-|
+|`ToCodeString()`|将生成结果输出至字符串|无||||
+|`ToFile()`|将生成结果保存至文件|`overwrite`|是否覆盖同名文件|`bool`|`false`|
+|||`targetPath`|生成文件的保存路径|`string`|应用程序当前工作目录下的相应文件夹|
+|`InsertFile()`|将生成结果插入已有文件|`targetPath`|需要插入代码的文件的保存路径|`string`|应用程序当前工作目录下的`Program.cs`文件的`var app = builder.Build();`语句之后|
 ### 联系方式
 ***email:cnxl@hotmail.com，我们将尽快回复。***
