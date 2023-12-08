@@ -266,18 +266,30 @@ IEnumerable<User> result = vdb.Select<User, Order>((u, o) => new { u.Id, u.Paren
 ```
 ##### Aggregation function
 ```C#
+public class User
+{
+        public int Id { get; set; }
+        public bool IsDeleted { get; set; }
+        [NotMapped]
+        public int SumForDeletedEmployeeAge { get; set; }
+        [NotMapped]
+        public int CountForDeletedEmployee { get; set; }
+}
+```
+```C#
 IEnumerable<User> result = vdb.Select<User>()
-     .Sum(u => u.Age)
-     .Count(u => u.IsDeleted == 0)
+     .Sum(u => u.Age, "SumForDeletedEmployeeAge")
+     .Count(u => u.Id, "CountForDeletedEmployee")
+     .Where(u => u.IsDeleted == 0)
      .GetData();
 ```
 |Method|Description|Parameters|Number of uses|
 |-|-|-|:-:|
-|`Avg()`|Calculate the average of a column. |Lambda expression|∞|
-|`Count()`|Counts the number of items in the collection. |Lambda expression|∞|
-|`Max()`|Computes the maximum value of a column. |Lambda expression|∞|
-|`Min()`|Computes the minimum value of a column. |Lambda expression|∞|
-|`Sum()`|Computes the total value of a column. |Lambda expression|∞|
+|`Avg()`|Calculate the average of a column. |Lambda expression、 Temporary column name mapped to a property of the same name in the Model (optional)|∞|
+|`Count()`|Counts the number of items in the collection. |Lambda expression(recommended to select the identity column)、 Temporary column name mapped to a property of the same name in the Model (optional)|∞|
+|`Max()`|Computes the maximum value of a column. |Lambda expression、 Temporary column name mapped to a property of the same name in the Model (optional)|∞|
+|`Min()`|Computes the minimum value of a column. |Lambda expression、 Temporary column name mapped to a property of the same name in the Model (optional)|∞|
+|`Sum()`|Computes the total value of a column. |Lambda expression、 Temporary column name mapped to a property of the same name in the Model (optional)|∞|
 ##### Conditional function
 ```C#
 IEnumerable<User> result = vdb.Select<User>()
@@ -742,18 +754,30 @@ IEnumerable<User> result = vdb.Select<User, Order>((u, o) => new { u.Id, u.Paren
 ```
 ##### 聚合函数
 ```C#
+public class User
+{
+        public int Id { get; set; }
+        public bool IsDeleted { get; set; }
+        [NotMapped]
+        public int SumForDeletedEmployeeAge { get; set; }
+        [NotMapped]
+        public int CountForDeletedEmployee { get; set; }
+}
+```
+```C#
 IEnumerable<User> result = vdb.Select<User>()
-    .Sum(u => u.Age)
-    .Count(u => u.IsDeleted == 0)
-    .GetData();
+     .Sum(u => u.Age, "SumForDeletedEmployeeAge")
+     .Count(u => u.Id, "CountForDeletedEmployee")
+     .Where(u => u.IsDeleted == 0)
+     .GetData();
 ```
 |方法|说明|参数|可使用次数|
 |-|-|-|:-:|
-|`Avg()`|计算某个列的平均值。|Lambda表达式|∞|
-|`Count()`|统计集合中的项目数。|Lambda表达式|∞|
-|`Max()`|计算列的最大值。|Lambda表达式|∞|
-|`Min()`|计算列的最小值。|Lambda表达式|∞|
-|`Sum()`|计算列的合计值。|Lambda表达式|∞|
+|`Avg()`|计算某个列的平均值。|Lambda表达式、映射到Model中同名属性的临时列名（可选）|∞|
+|`Count()`|统计集合中的项目数。|Lambda表达式（建议选择标识列）、映射到Model中同名属性的临时列名（可选）|∞|
+|`Max()`|计算列的最大值。|Lambda表达式、映射到Model中同名属性的临时列名（可选）|∞|
+|`Min()`|计算列的最小值。|Lambda表达式、映射到Model中同名属性的临时列名（可选）|∞|
+|`Sum()`|计算列的合计值。|Lambda表达式、映射到Model中同名属性的临时列名（可选）|∞|
 ##### 条件函数
 ```C#
 IEnumerable<User> result = vdb.Select<User>()
