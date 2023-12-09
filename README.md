@@ -135,7 +135,7 @@ int? ins3 = vdb.Insert<User>(new List<User>
 ```
 #### Update
 + Use Lambda expressions and anonymous objects as parameters to modify records. Entity objects are not currently supported and will not execute successfully using entity objects. For forward compatibility with subsequent versions, parameter types continue to use `dynamic`.
-+ Supports common multi-type parameter updates, and also supports operations such as addition, subtraction, multiplication, and division for numerical fields based on their own numerical values. **Notice! This kind of operation requires actively adding a Where statement to control the update scope, otherwise the entire table will be updated. **
++ Supports common multi-type parameter updates, and also supports operations such as addition, subtraction, multiplication, and division for numerical fields based on their own numerical values. **Notice! This kind of operation requires actively adding a Where statement to control the update scope, otherwise the entire table will be updated.**
 + When updating records using anonymous object parameters and the `Where()` method, you can update any column including the primary key; when updating only using object parameters, the value of the primary key field will be used as a filter condition and will not be updated.
 + When the column of the anonymous object does not include the primary key field and the `Where()` method is not used for update filtering, the update operation will not be performed for data security.
 + Properties with the same name as those in `TClass` in anonymous object parameters will not appear in the generated SQL statement if they have the `[DatabaseGeneratedOption.Computed]` tag.
