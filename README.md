@@ -134,23 +134,26 @@ int? ins3 = vdb.Insert<User>(new List<User>
 }).Execute();
 ```
 #### Update
-+ Use Lambda expressions and anonymous objects as parameters to modify records. Entity objects are not currently supported and will not execute successfully using entity objects. For forward compatibility with subsequent versions, the parameter type continues to use `dynamic`.
-+ Supports common multi-type parameter updates, and also supports numerical fields to perform operations such as addition, subtraction, multiplication, and division based on their own values.**Notice! This operation requires actively adding a Where statement to control the update scope, otherwise the entire table will be updated.**
++ Use Lambda expressions and anonymous objects as parameters to modify records. Entity objects are not currently supported and will not execute successfully using entity objects. For forward compatibility with subsequent versions, parameter types continue to use `dynamic`.
++ Supports common multi-type parameter updates, and also supports operations such as addition, subtraction, multiplication, and division for numerical fields based on their own numerical values. **Notice! This kind of operation requires actively adding a Where statement to control the update scope, otherwise the entire table will be updated. **
 + When updating records using anonymous object parameters and the `Where()` method, you can update any column including the primary key; when updating only using object parameters, the value of the primary key field will be used as a filter condition and will not be updated.
-+ When the column of the anonymous object does not contain a primary key field and the `Where()` method is not used for update filtering, for the sake of data security, the update operation will not be performed.
-+ Properties in anonymous object parameters that are identical to those in `TClass` will not appear in the generated SQL statement if they have the `[DatabaseGenerateOption.Compulated]` tag.
++ When the column of the anonymous object does not include the primary key field and the `Where()` method is not used for update filtering, the update operation will not be performed for data security.
++ Properties with the same name as those in `TClass` in anonymous object parameters will not appear in the generated SQL statement if they have the `[DatabaseGeneratedOption.Computed]` tag.
 ```C#
 //Update data with Lambda expressions.
 int? upd1 = vdb.Update<User>(u => new User { Id = 1, Name = "Sleepy", Age = 50 }).Execute();
 
 //Update data with expression + Where method.
-int? upd2 = vdb.Update<User>(u => new User { Name = "Sneezy", Age = 60 }).Where(u => u.Name == "李四").Execute();
+int? upd2 = vdb.Update<User>(u => new User { Name = "Sneezy", Age = 60 }).Where(u => u.Name == "Happy").Execute();
 
 //Update data with an anonymous object.
 int? upd3 = vdb.Update<User>(new { Id = 1, Name = "Happy", Age = 70 }).Execute();
 
 //Update data with anonymous object update + Where method.
-int? upd4 = vdb.Update<User>(new { Name = "Dopey", Age = 80 }).Where(u => u.Name == "赵六").Execute();
+int? upd4 = vdb.Update<User>(new { Name = "Dopey", Age = 80 }).Where(u => u.Name == "Grumpy").Execute();
+
+//Update data with Lambda expressions, and perform operations such as addition, subtraction, multiplication, and division based on your own value. Notice! This kind of operation requires actively adding a Where statement to control the update scope, otherwise the entire table will be updated.
+int? upd5 = vdb.Update<User>(u => (u.Number + 1) & (u.Age - 2) & (u.Order * 3)).Where(u => u.Id == 1);
 ```
 #### Delete
 + Use Lambda expressions and entity objects as parameters to delete records, or use the `Where()` method as a filter condition to delete records.
@@ -635,14 +638,14 @@ int? upd1 = vdb.Update<User>(u => new User { Id = 1, Name = "王五", Age = 50 }
 //用表达式 + Where方法更新数据。
 int? upd2 = vdb.Update<User>(u => new User { Name = "赵六", Age = 60 }).Where(u => u.Name == "李四").Execute();
 
-//用表达式更新数值字段，以自己数值为基数进行的加减乘除等运算。注意！此种操作需要主动添加Where语句控制更新范围，否则将全表更新。
-int? upd3 = vdb.Update<User>(u => (u.Number + 1) & (u.Age - 2) & (u.Order * 3)).Where(u => u.Id == 1);
-
 //用匿名对象更新数据。
-int? upd4 = vdb.Update<User>(new { Id = 1, Name = "孙七", Age = 70 }).Execute();
+int? upd3 = vdb.Update<User>(new { Id = 1, Name = "孙七", Age = 70 }).Execute();
 
 //用匿名对象更新 + Where方法更新数据。
-int? upd5 = vdb.Update<User>(new { Name = "周八", Age = 80 }).Where(u => u.Name == "赵六").Execute();
+int? upd4 = vdb.Update<User>(new { Name = "周八", Age = 80 }).Where(u => u.Name == "赵六").Execute();
+
+//用Lambda表达式更新数据，以自己数值为基数进行的加减乘除等运算。注意！此种操作需要主动添加Where语句控制更新范围，否则将全表更新。
+int? upd5 = vdb.Update<User>(u => (u.Number + 1) & (u.Age - 2) & (u.Order * 3)).Where(u => u.Id == 1);
 ```
 #### 删除数据
 + 使用Lambda表达式、实体对象做为参数删除记录，也可以用`Where()`方法作为筛选条件删除记录。
