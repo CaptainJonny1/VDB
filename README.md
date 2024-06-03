@@ -111,7 +111,7 @@ VDB vdb = new VDB(conn);   //normal mode.
 VDBSingleton.Instance.VDB = new VDB(conn);  //singleton mode.
 ```
 #### Insert
-+ Use Lambda expressions and entity objects as parameters to insert a single record at a time, or use List<TClass> type parameters to insert multiple records in batches.
++ Use Lambda expressions and entity objects as parameters to insert a single record at a time, or use List<TClass> type parameters to insert multiple records in batches and return the number of inserted records.
 + Returns the auto-incrementing primary key value when inserting a record. If the primary key is not auto-increasing, 0 is returned. Returns the number of affected rows when inserting multiple records.
 + Nullable properties will have a null value inserted, non-nullable properties will have a default value inserted.
 ```C#
@@ -134,7 +134,7 @@ int? ins3 = vdb.Insert<User>(new List<User>
 }).Execute();
 ```
 #### Update
-+ Use Lambda expressions and anonymous objects as parameters to modify records. Entity objects are not currently supported and will not execute successfully using entity objects. For forward compatibility with subsequent versions, parameter types continue to use `dynamic`.
++ Use Lambda expressions and anonymous objects as parameters to modify records and return the number of updated records. Entity objects are not currently supported and will not execute successfully using entity objects. For forward compatibility with subsequent versions, parameter types continue to use `dynamic`.
 + Supports common multi-type parameter updates, and also supports operations such as addition, subtraction, multiplication, and division for numerical fields based on their own numerical values. **Notice! This kind of operation requires actively adding a Where statement to control the update scope, otherwise the entire table will be updated.**
 + When updating records using anonymous object parameters and the `Where()` method, you can update any column including the primary key; when updating only using object parameters, the value of the primary key field will be used as a filter condition and will not be updated.
 + When the column of the anonymous object does not include the primary key field and the `Where()` method is not used for update filtering, the update operation will not be performed for data security.
@@ -156,7 +156,7 @@ int? upd4 = vdb.Update<User>(new { Name = "Dopey", Age = 80 }).Where(u => u.Name
 int? upd5 = vdb.Update<User>(u => (u.Number + 1) & (u.Age - 2) & (u.Order * 3)).Where(u => u.Id == 1);
 ```
 #### Delete
-+ Use Lambda expressions and entity objects as parameters to delete records, or use the `Where()` method as a filter condition to delete records.
++ Use Lambda expressions and entity objects as parameters to delete records, or use the `Where()` method as a filter condition to delete records and return the number of deleted records.
 + When using entity objects to filter records as parameters, if the object's attribute is a numerical default value (such as 0 for int), it will have no effect. For example, do not use `new User { Age = 0 }`.
 + When there are parameters and `Where()` is also used for update filtering, the filtering conditions will be AND combined.
 + When there are no parameters and `Where()` is not used for update filtering, the update operation will not be executed for data security.
@@ -209,12 +209,38 @@ IEnumerable<User> sel1 = vdb.Select<User>()
 IEnumerable<User> sel2 = vdb.Select<User>(u => new { u.Id, u.Name })
          .Where<User>(u => u.Age > 20).OrderBy(u => u.Age).Page(1, 10).GetData();
 ```
+##### Single table Self-linking query
+```C#
+IEnumerable<User> sel1 = vdb.Select<User, User, User>()
+        .LeftJoin((u, u1, u2) => u.CreaterId == u1.Id)
+        .LeftJoin((u, u1, u2) => u.UpdaterId == u2.Id)
+        .Where<User>((u, u1, u2) => u.Age > 20)
+        .OrderBy((u, u1, u2) => u.Age)
+        .Page(1, 10)
+        .GetData();
+```
+```C#
+public class User
+{
+    public int Id { get; set; }
+    ...
+    [ForeignKey("Creater")]
+    public int CreaterId { get; set; }
+
+    [ForeignKey("Updater")]
+    public int UpdaterId { get; set; }
+
+    public User Creater { get; set; }
+
+    public User Updater { get; set; }
+}
+```
 ##### Multi-table query
 + Multi-table query supports one-to-many, many-to-one, and one-to-one queries, and up to 8 tables can be queried at the same time.
 + Multi-table query will return the set of the first formal parameter, so in order to obtain the correct return result, you should add the attribute of the model class of the sub-table mapping to the model class of the main table mapping. For one-to-many, it is `List< Generic collection of child table models>`, one-to-one is a single model (if there are multiple attributes of the same type, you need to use the `[ForeignKey()]` tag to specify the navigation attributes).
 ```C#
 IEnumerable<User> sel1 = vdb.Select<User, Order>((u, o) => new { u.Id, u.Name, o.OId, o.Amount })
-     .LeftJoin((u, o) => u.Id == o.UserId)
+     .LeftJoin((u, o) => u.Id == o.UserId && o.IsDeleted == 0)
      .Where((u, o) => u.Age > 20)
      .OrderBy((u, o) => u.Age)
      .GetData();
@@ -245,7 +271,7 @@ IEnumerable<User> result = vdb.Select<User, Order>()
 ```
 ##### Recursive query[^3]
 Suitable for querying infinite hierarchical table structures. For example, the table contains the ParentId field, which is used to record the superior of the current record.
-+ Use the first expression parameter of "InnerJoin" to set the relationship between the identity field and its parent identity field, and set the condition for the recursion to end in the second expression parameter.
++ Use the first expression parameter of "InnerJoin" to set the relationship between the identity field and its parent identity field, if the field representing the parent Id in the expression is recursive upward to the left of the equals sign and downward recursive to the right of the equals sign, and set the condition for the recursion to end in the second expression parameter.
 + The third expression is an optional parameter. If this parameter is set to a field mapping attribute, VDB will use this attribute as a condition to convert the query results into a tree structure.
 + The result of the spanning tree structure requires that the Model mapped by the main table contains a generic List collection attribute of the same type as the main table.
 + Applicable to SQLServer2005, MySql8.0 (Released in 2018), SQLite 3.8.3 (Released in 2014-02-03) and newer versions.
@@ -313,7 +339,7 @@ IEnumerable<User> result = vdb.Select<User>()
 |-|-|-|-|-|
 |MySQL|Lowercase letters and underscores|`UserSetting`->`` `user_setting` ``|Lowercase letters and underscores|`UserId`->`` `user_id` ``|
 |SQL Server|Pascal|`UserSetting`->`[UserSetting]`|Camel|`UserId`->`[userId]`|
-|SQLite|Pascal|`UserSetting`->`'UserSetting''|Lowercase letters and underscores|`UserId`->`` `user_id` ``|
+|SQLite|Pascal|`UserSetting`->`'UserSetting'`|Lowercase letters and underscores|`UserId`->`` `user_id` ``|
 |Access|Pascal|`UserSetting`->`[UserSetting]`|Camel|`UserId`->`[userId]`|
 |Oracle|Capital letters and underscores|`UserSetting`->`"USER_SETTING"`|Capital letters and underscores|`UserId`->`"USER_ID"`|
 ##### Instructions for using data table attribute labels
@@ -602,7 +628,7 @@ VDB vdb = new VDB(conn);   //普通模式。
 VDBSingleton.Instance.VDB = new VDB(conn);  //单例模式。
 ```
 #### 插入数据
-+ 使用Lambda表达式、实体对象做为参数单次插入单一记录，也可以用List<TClass>型参数批量插入多条记录。
++ 使用Lambda表达式、实体对象做为参数单次插入单一记录，也可以用List<TClass>型参数批量插入多条记录，返回插入的记录数量。
 + 插入一条记录时返回自增主键值，如果主键不是自增长返回0。插入多条记录时返回影响行数。
 + 可空的属性将插入空值，不可空属性将插入默认值。
 ```C#
@@ -626,7 +652,7 @@ int? ins3 = vdb.Insert<User>(new List<User>
 }).Execute();
 ```
 #### 更新数据
-+ 使用Lambda表达式、匿名对象作为参数修改记录。目前不支持实体对象，使用实体对象将不能成功执行。为了后续版本向前兼容，参数类型继续使用`dynamic`。
++ 使用Lambda表达式、匿名对象作为参数修改记录，返回更新的记录数量。目前不支持实体对象，使用实体对象将不能成功执行。为了后续版本向前兼容，参数类型继续使用`dynamic`。
 + 支持常见的多类型参数更新，也支持用于数值字段以自己数值为基数进行的加减乘除等运算。**注意！此种操作需要主动添加Where语句控制更新范围，否则将全表更新。**
 + 使用匿名对象参数和`Where()`方法更新记录时可以更新包括主键在内的任何列；只使用对象参数更新时，主键字段的值将作为筛选条件不进行更新。
 + 当匿名对象的列中未包括主键字段，也没有使用`Where()`方法进行更新筛选时，为了数据安全更新操作将不会被执行。
@@ -648,7 +674,7 @@ int? upd4 = vdb.Update<User>(new { Name = "周八", Age = 80 }).Where(u => u.Nam
 int? upd5 = vdb.Update<User>(u => (u.Number + 1) & (u.Age - 2) & (u.Order * 3)).Where(u => u.Id == 1);
 ```
 #### 删除数据
-+ 使用Lambda表达式、实体对象做为参数删除记录，也可以用`Where()`方法作为筛选条件删除记录。
++ 使用Lambda表达式、实体对象做为参数删除记录，也可以用`Where()`方法作为筛选条件删除记录，返回删除的记录数量。
 + 使用实体对象为参数筛选记录时，如果对象的属性是数值型的默认值（例如int的0）则无效果，例如不要使用`new User { Age = 0 }`。
 + 当有参数，也使用`Where()`进行更新筛选时，筛选条件将进行AND合并。
 + 当无参数，也没有使用`Where()`进行更新筛选时，为了数据安全更新操作将不会被执行。
@@ -701,12 +727,38 @@ IEnumerable<User> sel1 = vdb.Select<User>()
 IEnumerable<User> sel2 = vdb.Select<User>(u => new { u.Id, u.Name })
         .Where<User>(u => u.Age > 20).OrderBy(u => u.Age).Page(1, 10).GetData();
 ```
+##### 单表自联查询
+```C#
+IEnumerable<User> sel1 = vdb.Select<User, User, User>()
+        .LeftJoin((u, u1, u2) => u.CreaterId == u1.Id)
+        .LeftJoin((u, u1, u2) => u.UpdaterId == u2.Id)
+        .Where<User>((u, u1, u2) => u.Age > 20)
+        .OrderBy((u, u1, u2) => u.Age)
+        .Page(1, 10)
+        .GetData();
+```
+```C#
+public class User
+{
+    public int Id { get; set; }
+    ...
+    [ForeignKey("Creater")]
+    public int CreaterId { get; set; }
+
+    [ForeignKey("Updater")]
+    public int UpdaterId { get; set; }
+
+    public User Creater { get; set; }
+
+    public User Updater { get; set; }
+}
+```
 ##### 多表查询
 + 多表查询支持一对多、多对一、一对一查询，最多可同时查询8个表。
 + 多表查询将返回第一个形参的集合，所以为了获得正确的返回结果，应在主表映射的模型类中增加类型为子表映射的模型类的属性，一对多时是`List<子表模型>`的泛型集合，一对一时是单一模型（如果有多个同类属性，需要使用`[ForeignKey()]`标签指定导航属性）。
 ```C#
 IEnumerable<User> sel1 = vdb.Select<User, Order>((u, o) => new { u.Id, u.Name, o.OId, o.Amount })
-    .LeftJoin((u, o) => u.Id == o.UserId)
+    .LeftJoin((u, o) => u.Id == o.UserId && o.IsDeleted == 0)
     .Where((u, o) => u.Age > 20)
     .OrderBy((u, o) => u.Age)
     .GetData();
@@ -737,7 +789,7 @@ IEnumerable<User> result = vdb.Select<User, Order>()
 ```
 ##### 递归查询[^3]
 适用于查询无限分级的表结构。例如表中含有ParentId字段，用来记录当前记录的上级。
-+ 使用“InnerJoin”的第一个表达式参数中设置标识字段与其父标识字段的关系，并在第二个表达式参数中设置递归结束的条件。
++ 使用“InnerJoin”的第一个表达式参数中设置标识字段与其父标识字段的关系，如果表达式中代表父Id的字段在等于号左侧为向上递归，在等于号右侧为向下递归，并在第二个表达式参数中设置递归结束的条件。
 + 第三个表达式为可选参数，如果设置该参数为一个字段映射的属性，VDB将使用该属性作为条件，将查询结果转化为树结构。
 + 生成树结构的结果要求主表映射的Model中包含有主表同类型的泛型List集合属性。
 + 适用于SQLServer2005、MySql8.0（2018年发布）、SQLite 3.8.3（2014-02-03发布）及更新版本。
