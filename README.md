@@ -212,7 +212,7 @@ IEnumerable<User> sel2 = vdb.Select<User>(u => new { u.Id, u.Name })
 ##### Single table Self-linking query
 ```C#
 IEnumerable<User> sel1 = vdb.Select<User, User, User>()
-        .LeftJoin((u, u1, u2) => u.CreaterId == u1.Id)
+        .LeftJoin((u, u1, u2) => u.CreatorId == u1.Id)
         .LeftJoin((u, u1, u2) => u.UpdaterId == u2.Id)
         .Where<User>((u, u1, u2) => u.Age > 20)
         .OrderBy((u, u1, u2) => u.Age)
@@ -224,13 +224,13 @@ public class User
 {
     public int Id { get; set; }
     ...
-    [ForeignKey("Creater")]
-    public int CreaterId { get; set; }
+    [ForeignKey("Creator")]
+    public int CreatorId { get; set; }
 
     [ForeignKey("Updater")]
     public int UpdaterId { get; set; }
 
-    public User Creater { get; set; }
+    public User Creator { get; set; }
 
     public User Updater { get; set; }
 }
@@ -240,7 +240,7 @@ public class User
 + Multi-table query will return the set of the first formal parameter, so in order to obtain the correct return result, you should add the navigation property of the model class of the sub-table mapping to the model class of the main table mapping. For one-to-many, it is `List< Generic collection of child table models>`, one-to-one is a single model (if there are multiple attributes of the same type, you need to use the `[ForeignKey()]` tag to specify the navigation attributes).
 ```C#
 IEnumerable<User> sel1 = vdb.Select<User, User, User, Order>()
-    .LeftJoin((u, u1, u2, o) => u.CreaterId == u1.Id)
+    .LeftJoin((u, u1, u2, o) => u.CreatorId == u1.Id)
     .LeftJoin((u, u1, u2, o) => u.UpdaterId == u2.Id)
     .LeftJoin((u, u1, u2, o) => u.Id == o.UserId && o.IsDeleted == 0)
     .Where((u, u1, u2, o) => u.Age > 20)
@@ -253,13 +253,13 @@ public class User
     public int Id { get; set; }
     ...
 
-    [ForeignKey("Creater")]
-    public int CreaterId { get; set; }
+    [ForeignKey("Creator")]
+    public int CreatorId { get; set; }
 
     [ForeignKey("Updater")]
     public int UpdaterId { get; set; }
 
-    public User Creater { get; set; }
+    public User Creator { get; set; }
 
     public User Updater { get; set; }
 
@@ -511,7 +511,7 @@ var result2 = codeTool.CreateIRepository().ToFile();
 ```
 ##### Create warehouse based on the data table
 ```C#
-var result3 = codeTool.CreateRepository().ToFile();
+var result3 = codeTool.Creatorepository().ToFile();
 ```
 ##### Insert registration Ioc code dependency injection
 ```C#
@@ -751,7 +751,7 @@ IEnumerable<User> sel2 = vdb.Select<User>(u => new { u.Id, u.Name })
 ##### 单表自联查询
 ```C#
 IEnumerable<User> sel1 = vdb.Select<User, User, User>()
-        .LeftJoin((u, u1, u2) => u.CreaterId == u1.Id)
+        .LeftJoin((u, u1, u2) => u.CreatorId == u1.Id)
         .LeftJoin((u, u1, u2) => u.UpdaterId == u2.Id)
         .Where<User>((u, u1, u2) => u.Age > 20)
         .OrderBy((u, u1, u2) => u.Age)
@@ -763,13 +763,13 @@ public class User
 {
     public int Id { get; set; }
     ...
-    [ForeignKey("Creater")]
-    public int CreaterId { get; set; }
+    [ForeignKey("Creator")]
+    public int CreatorId { get; set; }
 
     [ForeignKey("Updater")]
     public int UpdaterId { get; set; }
 
-    public User Creater { get; set; }
+    public User Creator { get; set; }
 
     public User Updater { get; set; }
 }
@@ -779,7 +779,7 @@ public class User
 + 多表查询将返回第一个形参的集合，所以为了获得正确的返回结果，应在主表映射的模型类中增加类型为子表映射的模型类的导航属性，一对多时是`List<子表模型>`的泛型集合，一对一时是单一模型（如果有多个同类属性，需要使用`[ForeignKey()]`标签指定导航属性）。
 ```C#
 IEnumerable<User> sel1 = vdb.Select<User, User, User, Order>()
-    .LeftJoin((u, u1, u2, o) => u.CreaterId == u1.Id)
+    .LeftJoin((u, u1, u2, o) => u.CreatorId == u1.Id)
     .LeftJoin((u, u1, u2, o) => u.UpdaterId == u2.Id)
     .LeftJoin((u, u1, u2, o) => u.Id == o.UserId && o.IsDeleted == 0)
     .Where((u, u1, u2, o) => u.Age > 20)
@@ -792,13 +792,13 @@ public class User
     public int Id { get; set; }
     ...
     
-    [ForeignKey("Creater")]
-    public int CreaterId { get; set; }
+    [ForeignKey("Creator")]
+    public int CreatorId { get; set; }
 
     [ForeignKey("Updater")]
     public int UpdaterId { get; set; }
 
-    public User Creater { get; set; }
+    public User Creator { get; set; }
 
     public User Updater { get; set; }
 
@@ -1051,7 +1051,7 @@ var result2 = codeTool.CreateIRepository().ToFile();
 ```
 ##### 根据数据表创建仓库
 ```C#
-var result3 = codeTool.CreateRepository().ToFile();
+var result3 = codeTool.Creatorepository().ToFile();
 ```
 ##### 插入注册Ioc代码依赖注入
 ```C#
