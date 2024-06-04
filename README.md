@@ -511,7 +511,7 @@ var result2 = codeTool.CreateIRepository().ToFile();
 ```
 ##### Create warehouse based on the data table
 ```C#
-var result3 = codeTool.Creatorepository().ToFile();
+var result3 = codeTool.CreateRepository().ToFile();
 ```
 ##### Insert registration Ioc code dependency injection
 ```C#
@@ -1051,7 +1051,7 @@ var result2 = codeTool.CreateIRepository().ToFile();
 ```
 ##### 根据数据表创建仓库
 ```C#
-var result3 = codeTool.Creatorepository().ToFile();
+var result3 = codeTool.CreateRepository().ToFile();
 ```
 ##### 插入注册Ioc代码依赖注入
 ```C#
