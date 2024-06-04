@@ -237,13 +237,34 @@ public class User
 ```
 ##### Multi-table query
 + Multi-table query supports one-to-many, many-to-one, and one-to-one queries, and up to 8 tables can be queried at the same time.
-+ Multi-table query will return the set of the first formal parameter, so in order to obtain the correct return result, you should add the attribute of the model class of the sub-table mapping to the model class of the main table mapping. For one-to-many, it is `List< Generic collection of child table models>`, one-to-one is a single model (if there are multiple attributes of the same type, you need to use the `[ForeignKey()]` tag to specify the navigation attributes).
++ Multi-table query will return the set of the first formal parameter, so in order to obtain the correct return result, you should add the navigation property of the model class of the sub-table mapping to the model class of the main table mapping. For one-to-many, it is `List< Generic collection of child table models>`, one-to-one is a single model (if there are multiple attributes of the same type, you need to use the `[ForeignKey()]` tag to specify the navigation attributes).
 ```C#
-IEnumerable<User> sel1 = vdb.Select<User, Order>((u, o) => new { u.Id, u.Name, o.OId, o.Amount })
-     .LeftJoin((u, o) => u.Id == o.UserId && o.IsDeleted == 0)
-     .Where((u, o) => u.Age > 20)
-     .OrderBy((u, o) => u.Age)
-     .GetData();
+IEnumerable<User> sel1 = vdb.Select<User, User, User, Order>()
+    .LeftJoin((u, u1, u2, o) => u.CreaterId == u1.Id)
+    .LeftJoin((u, u1, u2, o) => u.UpdaterId == u2.Id)
+    .LeftJoin((u, u1, u2, o) => u.Id == o.UserId && o.IsDeleted == 0)
+    .Where((u, u1, u2, o) => u.Age > 20)
+    .OrderBy((u, u1, u2, o) => u.Age)
+    .GetData();
+```
+```C#
+public class User
+{
+    public int Id { get; set; }
+    ...
+
+    [ForeignKey("Creater")]
+    public int CreaterId { get; set; }
+
+    [ForeignKey("Updater")]
+    public int UpdaterId { get; set; }
+
+    public User Creater { get; set; }
+
+    public User Updater { get; set; }
+
+    public List<Order> Orders { get; set; }
+}
 ```
 ##### Multi-table paging query
 + This should be achieved using FromQuery subquery. For example:
@@ -755,13 +776,34 @@ public class User
 ```
 ##### 多表查询
 + 多表查询支持一对多、多对一、一对一查询，最多可同时查询8个表。
-+ 多表查询将返回第一个形参的集合，所以为了获得正确的返回结果，应在主表映射的模型类中增加类型为子表映射的模型类的属性，一对多时是`List<子表模型>`的泛型集合，一对一时是单一模型（如果有多个同类属性，需要使用`[ForeignKey()]`标签指定导航属性）。
++ 多表查询将返回第一个形参的集合，所以为了获得正确的返回结果，应在主表映射的模型类中增加类型为子表映射的模型类的导航属性，一对多时是`List<子表模型>`的泛型集合，一对一时是单一模型（如果有多个同类属性，需要使用`[ForeignKey()]`标签指定导航属性）。
 ```C#
-IEnumerable<User> sel1 = vdb.Select<User, Order>((u, o) => new { u.Id, u.Name, o.OId, o.Amount })
-    .LeftJoin((u, o) => u.Id == o.UserId && o.IsDeleted == 0)
-    .Where((u, o) => u.Age > 20)
-    .OrderBy((u, o) => u.Age)
+IEnumerable<User> sel1 = vdb.Select<User, User, User, Order>()
+    .LeftJoin((u, u1, u2, o) => u.CreaterId == u1.Id)
+    .LeftJoin((u, u1, u2, o) => u.UpdaterId == u2.Id)
+    .LeftJoin((u, u1, u2, o) => u.Id == o.UserId && o.IsDeleted == 0)
+    .Where((u, u1, u2, o) => u.Age > 20)
+    .OrderBy((u, u1, u2, o) => u.Age)
     .GetData();
+```
+```C#
+public class User
+{
+    public int Id { get; set; }
+    ...
+    
+    [ForeignKey("Creater")]
+    public int CreaterId { get; set; }
+
+    [ForeignKey("Updater")]
+    public int UpdaterId { get; set; }
+
+    public User Creater { get; set; }
+
+    public User Updater { get; set; }
+
+    public List<Order> Orders { get; set; }
+}
 ```
 ##### 多表的分页查询
 + 应使用FromQuery子查询来实现。例如：
