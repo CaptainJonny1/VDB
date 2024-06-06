@@ -277,6 +277,15 @@ IEnumerable<User> result = vdb.Select<User, Order>()
      .LeftJoin((u, o) => u.Id == o.UserId)
      .GetData();
 ```
+##### Cross-Database query
+You can specify the name of the schema to which the table belongs by setting the value of the "Schema" property in the class attribute [Table] of the model to enable cross-database query. For example:
+```C#
+[Table("order", Schema = "db2")]
+public class Order
+{
+    ...
+}
+```
 ##### Union primary key query
 ```C#
 IEnumerable<User> result = vdb.Select<User, Order>()
@@ -565,7 +574,7 @@ var result5 = codeTool.CreateWebAPIController().ToFile();
 |Voy.Tools[^2]|以Voy.DALBase、Voy.Toolkit.Common为基础，根据可自行修改的模板自动生成重复代码。|
 
 [^1]: 需要安装 [Voy.Toolkit.Common](https://www.nuget.org/packages/Voy.Toolkit.Common/)。
-[^2]: 需要安装 [Voy.Toolks](https://www.nuget.org/packages/Voy.Tools/)。
+[^2]: 需要安装 [Voy.Tools](https://www.nuget.org/packages/Voy.Tools/)。
 ### 使用
 #### SQL 语句扩展方法列表
 |方法说明|`GetSQLString()`<br>获取SQL语句|`GetParams()`<br>获取SQL语句的参数<br>|执行数据操作命令<br>`Execute()`|执行数据查询命令<br>`GetData()`|执行标量查询命令<br>`ExecuteScalar()`|
@@ -815,6 +824,15 @@ IEnumerable<User> result = vdb.Select<User, Order>()
                 .Page(1, 10))
     .LeftJoin((u, o) => u.Id == o.UserId)
     .GetData();
+```
+##### 跨数据库查询
+可通过在Model的类标签[Table]设置“Schema”属性值来指定表所属的模式名称，即可实现跨数据库查询。例如：
+```C#
+[Table("order", Schema = "db2")]
+public class Order
+{
+    ...
+}
 ```
 ##### 联合主键查询
 ```C#
