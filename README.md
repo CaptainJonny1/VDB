@@ -267,7 +267,8 @@ public class User
 }
 ```
 ##### Multi-table paging query
-+ This should be achieved using FromQuery subquery. For example:
++ This should be achieved using FromQuery subquery. 
++ The fields of the subquery mapping table should be defined in the Select method parameter of the subquery, and the fields of the subquery mapping table should not be defined in the main query.For example:
 ```C#
 IEnumerable<User> result = vdb.Select<User, Order>()
      .FromQuery(vdb.Select<User>(u => new { u.Id, u.Name })
@@ -815,7 +816,8 @@ public class User
 }
 ```
 ##### 多表的分页查询
-+ 应使用FromQuery子查询来实现。例如：
++ 应使用FromQuery子查询来实现。
++ 子查询映射表的字段应在子查询的Select方法参数中定义，不要在主查询中定义子查询映射表的字段。例如：
 ```C#
 IEnumerable<User> result = vdb.Select<User, Order>()
     .FromQuery(vdb.Select<User>(u => new { u.Id, u.Name })
@@ -849,7 +851,7 @@ IEnumerable<User> result = vdb.Select<User, Order>()
 ```
 ##### 递归查询[^3]
 适用于查询无限分级的表结构。例如表中含有ParentId字段，用来记录当前记录的上级。
-+ 使用“InnerJoin”的第一个表达式参数中设置标识字段与其父标识字段的关系，如果表达式中代表父Id的字段在等于号左侧为向上递归，在等于号右侧为向下递归，并在第二个表达式参数中设置递归结束的条件。
++ 使用“InnerJoin”的第一个表达式参数中设置标识字段与其父标识字段的关系，如果表达式中代表父Id的字段在等号左侧为向上递归，在等号右侧为向下递归，并在第二个表达式参数中设置递归结束的条件。
 + 第三个表达式为可选参数，如果设置该参数为一个字段映射的属性，VDB将使用该属性作为条件，将查询结果转化为树结构。
 + 生成树结构的结果要求主表映射的Model中包含有主表同类型的泛型List集合属性。
 + 适用于SQLServer2005、MySql8.0（2018年发布）、SQLite 3.8.3（2014-02-03发布）及更新版本。
