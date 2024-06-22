@@ -341,9 +341,9 @@ public class User
 IEnumerable<User> result = vdb.Select<User>()
      .Sum(u => u.Age, "SumForDeletedEmployeeAge")
      .Count(u => u.Id, "CountForDeletedEmployee")
+     .Where(u => u.IsDeleted == 0)
      .GroupBy(u => u.Gender)
      .GroupBy(u => u.Type)
-     .Where(u => u.IsDeleted == 0)
      .GetData();
 ```
 |Method|Description|Parameters|Number of uses|
@@ -892,9 +892,9 @@ public class User
 IEnumerable<User> result = vdb.Select<User>()
      .Sum(u => u.Age, "SumForDeletedEmployeeAge")
      .Count(u => u.Id, "CountForDeletedEmployee")
+     .Where(u => u.IsDeleted == 0)
      .GroupBy(u => u.Gender)
      .GroupBy(u => u.Type)
-     .Where(u => u.IsDeleted == 0)
      .GetData();
 ```
 |方法|说明|参数|可使用次数|
