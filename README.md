@@ -325,6 +325,16 @@ IEnumerable<User> result = vdb.Select<User, Order>((u, o) => new { u.Id, u.Paren
      .InnerJoin((u) => u.Id == u.ParentId, u => u.Id == 1, u => u.ParentId)
      .GetData();
 ```
+##### Organize recursive query result
+Using the extension method ParentToList() of the DataTool class in the Voy.DALBase.Tools namespace, the results of an upward recursive query can be converted into an ordered result set. For example:
+```C#
+var result = vdb.Select<BizColumn>().InnerJoin(x => x.ParentId == x.Id, x => x.Id == 28).GetData().FirstOrDefault(r => r.Id == 28);
+if (result != null)
+{
+    List<BizColumn> columns = result.ParentToList(r => r.Parent);
+    string path = string.Join("/", columns.Select(c => c.Name));
+}
+```
 ##### Aggregation function
 ```C#
 public class User
@@ -875,6 +885,16 @@ IEnumerable<User> result = vdb.Select<User, Order>((u, o) => new { u.Id, u.Paren
     .LeftJoin((u, o) => o.UserId == u.Id)
     .InnerJoin((u) => u.Id == u.ParentId, u => u.Id == 1, u => u.ParentId)
     .GetData();
+```
+##### 递归查询结果整理
+使用Voy.DALBase.Tools命名空间中DataTool类的扩展方法ParentToList()，可以将向上递归查询的结果转化为有序结果集。例如：
+```C#
+var result = vdb.Select<BizColumn>().InnerJoin(x => x.ParentId == x.Id, x => x.Id == 28).GetData().FirstOrDefault(r => r.Id == 28);
+if (result != null)
+{
+    List<BizColumn> columns = result.ParentToList(r => r.Parent);
+    string path = string.Join("/", columns.Select(c => c.Name));
+}
 ```
 ##### 聚合函数
 ```C#
