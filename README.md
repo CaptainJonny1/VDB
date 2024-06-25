@@ -375,16 +375,16 @@ IEnumerable<User> result = vdb.Select<User>()
 |`If()`|If the judgment condition is true, return the first value after ?, otherwise return the second value. |Lambda expression, temporary column name (optional) |∞|
 |`IfNull()`|If the judgment object is empty, the value after ?? will be returned. |Lambda expression|∞|
 #### Data model
-+ Without specifying the data table/data column name, VDB will apply different naming rules to map class name -> data table name, attribute name -> data column name according to the mapped database brand.
++ Without specifying the data table/data column name, VDB will apply different naming policy to map class name -> data table name, attribute name -> data column name according to the mapped database brand.
 + Use the `[Table]` and `[Column]` tags on the class and attribute respectively to specify the mapped data table and data column.
-##### Default naming rules
-|Database Brand|Table Naming Rules|Table Name Examples|Column Naming Rules|Column Name Examples|
+##### Default naming policy
+|Database Brand|Table Naming Policy|Table Name Examples|Column Naming Policy|Column Name Examples|
 |-|-|-|-|-|
-|MySQL|Lowercase letters and underscores|`UserSetting`->`` `user_setting` ``|Lowercase letters and underscores|`UserId`->`` `user_id` ``|
-|SQL Server|Pascal|`UserSetting`->`[UserSetting]`|Camel|`UserId`->`[userId]`|
-|SQLite|Pascal|`UserSetting`->`'UserSetting'`|Lowercase letters and underscores|`UserId`->`` `user_id` ``|
-|Access|Pascal|`UserSetting`->`[UserSetting]`|Camel|`UserId`->`[userId]`|
-|Oracle|Capital letters and underscores|`UserSetting`->`"USER_SETTING"`|Capital letters and underscores|`UserId`->`"USER_ID"`|
+|MySQL|SnakeCaseLower（Words are separated by underscores.All characters are lowercase.）|`UserSetting`->`` `user_setting` ``|SnakeCaseLower（Words are separated by underscores.All characters are lowercase.）|`UserId`->`` `user_id` ``|
+|SQL Server|PascalCase（First word starts with a upper case character.Successive words start with an uppercase character.）|`UserSetting`->`[UserSetting]`|CamelCase（First word starts with a lower case character.Successive words start with an uppercase character.）|`UserId`->`[userId]`|
+|SQLite|PascalCase（First word starts with a upper case character.Successive words start with an uppercase character.）|`UserSetting`->`'UserSetting'`|SnakeCaseLower（Words are separated by underscores.All characters are lowercase.）|`UserId`->`` `user_id` ``|
+|Access|PascalCase（First word starts with a upper case character.Successive words start with an uppercase character.）|`UserSetting`->`[UserSetting]`|CamelCase（First word starts with a lower case character.Successive words start with an uppercase character.）|`UserId`->`[userId]`|
+|Oracle|SnakeCaseUpper（Words are separated by underscores.All characters are uppercase.）|`UserSetting`->`"USER_SETTING"`|SnakeCaseUpper（Words are separated by underscores.All characters are uppercase.）|`UserId`->`"USER_ID"`|
 ##### Instructions for using data table attribute labels
 |Name|Description|
 |-|-|
@@ -937,16 +937,16 @@ IEnumerable<User> result = vdb.Select<User>()
 |`IfNull()`|判断对象如果为空，则返回??后面的值。|Lambda表达式|∞|
 
 #### 数据模型
-+ 在不指定数据表/数据列名称的情况下，VDB会根据映射的数据库品牌，应用不同的命名规则来映射类名->数据表名、属性名->数据列名。
++ 在不指定数据表/数据列名称的情况下，VDB会根据映射的数据库品牌，应用不同的命名策略来映射类名->数据表名、属性名->数据列名。
 + 在类和属性上分别使用`[Table]`和`[Column]`标签可以指定映射的数据表和数据列。
-##### 默认命名规则
-|数据库品牌|表命名规则|表名举例|列命名规则|列名举例|
+##### 默认命名策略
+|数据库品牌|表命名策略|表名举例|列命名策略|列名举例|
 |-|-|-|-|-|
-|MySQL|小写字母与下划线|`UserSetting`->`` `user_setting` ``|小写字母与下划线|`UserId`->`` `user_id` ``|
-|SQL Server|Pascal|`UserSetting`->`[UserSetting]`|Camel|`UserId`->`[userId]`|
-|SQLite|Pascal|`UserSetting`->`'UserSetting'`|小写字母与下划线|`UserId`->`` `user_id` ``|
-|Access|Pascal|`UserSetting`->`[UserSetting]`|Camel|`UserId`->`[userId]`|
-|Oracle|大写字母与下划线|`UserSetting`->`"USER_SETTING"`|大写字母与下划线|`UserId`->`"USER_ID"`|
+|MySQL|SnakeCaseLower（单词用下划线分隔。所有字符均为小写。）|`UserSetting`->`` `user_setting` ``|SnakeCaseLower（单词用下划线分隔。所有字符均为小写。）|`UserId`->`` `user_id` ``|
+|SQL Server|PascalCase（第一个单词以大写字符开头。连续单词以大写字符开头。）|`UserSetting`->`[UserSetting]`|CamelCase（第一个单词以小写字符开头。连续单词以大写字符开头。）|`UserId`->`[userId]`|
+|SQLite|PascalCase（第一个单词以大写字符开头。连续单词以大写字符开头。）|`UserSetting`->`'UserSetting'`|SnakeCaseLower（单词用下划线分隔。所有字符均为小写。）|`UserId`->`` `user_id` ``|
+|Access|PascalCase（第一个单词以大写字符开头。连续单词以大写字符开头。）|`UserSetting`->`[UserSetting]`|CamelCase（第一个单词以小写字符开头。连续单词以大写字符开头。）|`UserId`->`[userId]`|
+|Oracle|SnakeCaseUpper（单词用下划线分隔。所有字符均为大写。）|`UserSetting`->`"USER_SETTING"`|SnakeCaseUpper（单词用下划线分隔。所有字符均为大写。）|`UserSetting`->`"USER_SETTING"`|（单词用下划线分隔。所有字符均为大写。）|`UserId`->`"USER_ID"`|
 ##### 数据表特性标签使用说明
 |名称|说明|
 |-|-|
