@@ -518,7 +518,6 @@ IEnumerable<dynamic> result = vdb.GetTableStructure("user").GetData();
 ```C#
 var codeTool = new CodeTool(conn);
 codeTool.Language = ProgrammingLanguage.CSharp; //If not specified, C# will be used.
-codeTool.NameSpace = "MyDemo"; // If not specified, the current project name will be used.
 ```
 |Parameters of CodeTool|Description|Type|Default value|
 |-|-|-|-|
@@ -532,25 +531,25 @@ var result1 = codeTool.CreateModel().ToFile();
 ```
 |Parameters of CreateModel|Description|Type|Default value|
 |-|-|-|-|
-|`NameSpace`|Namespace|`string`|Current project name|
-|`BaseTypes`|Base class or interface|`string[]`|None|
-|`IgnoredColumns`|Columns to be ignored|`string[]`|None|
+|`nameSpace`|Namespace|`string`|Current project name|
+|`baseTypes`|Base class or interface|`string[]`|None|
+|`ignoredColumns`|Columns to be ignored|`string[]`|None|
 ##### Create warehouse interface based on the data table
 ```C#
 var result2 = codeTool.CreateIRepository().ToFile();
 ```
 |Parameters of CreateIRepository|Description|Type|Default value|
 |-|-|-|-|
-|`NameSpace`|Namespace|`string`|Current project name|
-|`BaseTypes`|Base class or interface|`string[]`|None|
+|`nameSpace`|Namespace|`string`|Current project name|
+|`baseTypes`|Base class or interface|`string[]`|None|
 ##### Create warehouse based on the data table
 ```C#
 var result3 = codeTool.CreateRepository().ToFile();
 ```
 |Parameters of CreateRepository|Description|Type|Default value|
 |-|-|-|-|
-|`NameSpace`|Namespace|`string`|Current project name|
-|`BaseTypes`|Base class or interface|`string[]`|None|
+|`nameSpace`|Namespace|`string`|Current project name|
+|`baseTypes`|Base class or interface|`string[]`|None|
 ##### Insert registration Ioc code dependency injection
 ```C#
 var result4 = codeTool.RegisterIoC().InsertFile();
@@ -561,8 +560,8 @@ var result5 = codeTool.CreateWebAPIController().ToFile();
 ```
 |Parameters of CreateWebAPIController|Description|Type|Default value|
 |-|-|-|-|
-|`NameSpace`|Namespace|`string`|Current project name|
-|`BaseTypes`|Base class or interface|`string[]`|None|
+|`nameSpace`|Namespace|`string`|Current project name|
+|`baseTypes`|Base class or interface|`string[]`|None|
 ###### General Method
 |Method|Method description|Parameters|Parameter description|Type|Default value|
 |-|-|-|-|-|-|
@@ -1100,7 +1099,6 @@ IEnumerable<dynamic> result = vdb.GetTableStructure("user").GetData();
 ```C#
 var codeTool = new CodeTool(conn);
 codeTool.Language = ProgrammingLanguage.CSharp; //如不指定则使用C#。
-codeTool.NameSpace = "MyDemo";  // 如不指定则使用当前项目名称。
 ```
 |CodeTool 的参数|说明|类型|默认值|
 |-|-|-|-|
@@ -1114,25 +1112,25 @@ var result1 = codeTool.CreateModel().ToFile();
 ```
 |CreateModel 的参数|说明|类型|默认值|
 |-|-|-|-|
-|`NameSpace`|命名空间|`string`|当前项目名称|
-|`BaseTypes`|基类或接口|`string[]`|无|
-|`IgnoredColumns`|需要忽略的列|`string[]`|无|
+|`nameSpace`|命名空间|`string`|当前项目名称|
+|`baseTypes`|基类或接口|`string[]`|无|
+|`ignoredColumns`|需要忽略的列|`string[]`|无|
 ##### 根据数据表创建仓库接口
 ```C#
 var result2 = codeTool.CreateIRepository().ToFile();
 ```
 |CreateIRepository 的参数|说明|类型|默认值|
 |-|-|-|-|
-|`NameSpace`|命名空间|`string`|当前项目名称|
-|`BaseTypes`|基类或接口|`string[]`|无|
+|`nameSpace`|命名空间|`string`|当前项目名称|
+|`baseTypes`|基类或接口|`string[]`|无|
 ##### 根据数据表创建仓库
 ```C#
 var result3 = codeTool.CreateRepository().ToFile();
 ```
 |CreateRepository 的参数|说明|类型|默认值|
 |-|-|-|-|
-|`NameSpace`|命名空间|`string`|当前项目名称|
-|`BaseTypes`|基类或接口|`string[]`|无|
+|`nameSpace`|命名空间|`string`|当前项目名称|
+|`baseTypes`|基类或接口|`string[]`|无|
 ##### 插入注册Ioc代码依赖注入
 ```C#
 var result4 = codeTool.RegisterIoC().InsertFile();
@@ -1143,8 +1141,8 @@ var result5 = codeTool.CreateWebAPIController().ToFile();
 ```
 |CreateWebAPIController 的参数|说明|类型|默认值|
 |-|-|-|-|
-|`NameSpace`|命名空间|`string`|当前项目名称|
-|`BaseTypes`|基类或接口|`string[]`|无|
+|`nameSpace`|命名空间|`string`|当前项目名称|
+|`baseTypes`|基类或接口|`string[]`|无|
 ###### 通用方法
 |方法|方法说明|参数|参数说明|类型|默认值|
 |-|-|-|-|-|-|
