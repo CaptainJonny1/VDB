@@ -224,10 +224,10 @@ public class User
 {
     public int Id { get; set; }
     ...
-    [ForeignKey("Creator")]
+    [ForeignKey(nameof(Creator))]
     public int CreatorId { get; set; }
 
-    [ForeignKey("Updater")]
+    [ForeignKey(nameof(Updater))]
     public int UpdaterId { get; set; }
 
     public User Creator { get; set; }
@@ -242,7 +242,7 @@ public class User
 IEnumerable<User> sel1 = vdb.Select<User, User, User, Order>()
     .LeftJoin((u, u1, u2, o) => u.CreatorId == u1.Id)
     .LeftJoin((u, u1, u2, o) => u.UpdaterId == u2.Id)
-    .LeftJoin((u, u1, u2, o) => u.Id == o.UserId && o.IsDeleted == 0)
+    .LeftJoin((u, u1, u2, o) => u.Id == o.UserId && o.IsDeleted == false)
     .Where((u, u1, u2, o) => u.Age > 20)
     .OrderBy((u, u1, u2, o) => u.Age)
     .GetData();
@@ -253,10 +253,10 @@ public class User
     public int Id { get; set; }
     ...
 
-    [ForeignKey("Creator")]
+    [ForeignKey(nameof(Creator))]
     public int CreatorId { get; set; }
 
-    [ForeignKey("Updater")]
+    [ForeignKey(nameof(Updater))]
     public int UpdaterId { get; set; }
 
     public User Creator { get; set; }
@@ -272,7 +272,7 @@ public class User
 ```C#
 IEnumerable<User> result = vdb.Select<User, Order>()
      .FromQuery(vdb.Select<User>(u => new { u.Id, u.Name })
-                 .Where(u => u.IsDeleted == 0)
+                 .Where(u => u.IsDeleted == false)
                  .OrderBy(u => u.ShowOrder)
                  .Page(1, 10))
      .LeftJoin((u, o) => u.Id == o.UserId)
@@ -302,7 +302,7 @@ IEnumerable<User> result = vdb.Select<User, Order>()
 ```
 ##### Recursive query[^3]
 Suitable for querying infinite hierarchical table structures. For example, the table contains the ParentId field, which is used to record the superior of the current record.
-+ Use the first expression parameter of "InnerJoin" to set the relationship between the identity field and its parent identity field, if the field representing the parent Id in the expression is recursive upward to the left of the equals sign and downward recursive to the right of the equals sign, and set the condition for the recursion to end in the second expression parameter.
++ Use the first parameter of the "InnerJoin" expression to set the relationship between the identity field (e.g., Id) and the parent identity field (e.g., ParentId), if the parent identity field is recursive up to the left of the equal sign and down to the right of the equal sign, and set the condition for the end of recursion in the second expression parameter.
 + The third expression is an optional parameter. If this parameter is set to a field mapping attribute, VDB will use this attribute as a condition to convert the query results into a tree structure.
 + The result of the spanning tree structure requires that the Model mapped by the main table contains a generic List collection attribute of the same type as the main table.
 + Applicable to SQLServer2005, MySql8.0 (Released in 2018), SQLite 3.8.3 (Released in 2014-02-03) and newer versions.
@@ -325,16 +325,6 @@ IEnumerable<User> result = vdb.Select<User, Order>((u, o) => new { u.Id, u.Paren
      .InnerJoin((u) => u.Id == u.ParentId, u => u.Id == 1, u => u.ParentId)
      .GetData();
 ```
-##### Organize recursive query result
-Using the extension method "ToListByParent()" of the DataTool class in the Voy.DALBase.Tools namespace, the results of an upward recursive query can be converted into an ordered result set. For example:
-```C#
-var result = vdb.Select<BizColumn>().InnerJoin(x => x.ParentId == x.Id, x => x.Id == 28).GetData().FirstOrDefault(r => r.Id == 28);
-if (result != null)
-{
-    List<BizColumn> columns = result.ToListByParent(r => r.Parent);
-    string path = string.Join("/", columns.Select(c => c.Name));
-}
-```
 ##### Aggregation function
 ```C#
 public class User
@@ -351,7 +341,7 @@ public class User
 IEnumerable<User> result = vdb.Select<User>()
      .Sum(u => u.Age, "SumForDeletedEmployeeAge")
      .Count(u => u.Id, "CountForDeletedEmployee")
-     .Where(u => u.IsDeleted == 0)
+     .Where(u => u.IsDeleted == false)
      .GroupBy(u => u.Gender)
      .GroupBy(u => u.Type)
      .GetData();
@@ -366,7 +356,7 @@ IEnumerable<User> result = vdb.Select<User>()
 ##### Conditional function
 ```C#
 IEnumerable<User> result = vdb.Select<User>()
-     .If(u => u.IsDeleted == 0 ? "Not deleted" : "Deleted", "Deleted status")
+     .If(u => u.IsDeleted == false ? "Not deleted" : "Deleted", "Deleted status")
      .IfNull(u => u.Name ?? "Empty name")
      .GetData();
 ```
@@ -374,6 +364,23 @@ IEnumerable<User> result = vdb.Select<User>()
 |-|-|-|:-:|
 |`If()`|If the judgment condition is true, return the first value after ?, otherwise return the second value. |Lambda expression, temporary column name (optional) |∞|
 |`IfNull()`|If the judgment object is empty, the value after ?? will be returned. |Lambda expression|∞|
+##### Organize query result
+######  Recursive query results are organized into an ordered set
+Using the extension method "ToListByParent()" of the DataTool class in the Voy.DALBase.Tools namespace, the results of an upward recursive query can be converted into an ordered result set. For example:
+```C#
+var result = vdb.Select<BizColumn>().InnerJoin(x => x.ParentId == x.Id, x => x.Id == 28).GetData().FirstOrDefault(r => r.Id == 28);
+if (result != null)
+{
+    List<BizColumn> columns = result.ToListByParent(r => r.Parent);
+    string path = string.Join("/", columns.Select(c => c.Name));
+}
+```
+###### Assign the attribute value of the source collection object to an attribute of the same name and type in the target collection.
+You can use the extension method CopyToList<TSource, TTarget>() of the DataTool class in the Voy.DALBase.Tools namespace to copy the property values in the query result set to the properties with the same name and type in the target collection. For example:
+```C#
+var query = vdb.Select<User, Order>().LeftJoin((u, o) => u.Id == o.UserId);
+var result = query.GetData().CopyTo<User, UserDto>();
+```
 #### Data model
 + Without specifying the data table/data column name, VDB will apply different naming policy to map class name -> data table name, attribute name -> data column name according to the mapped database brand.
 + Use the `[Table]` and `[Column]` tags on the class and attribute respectively to specify the mapped data table and data column.
@@ -441,7 +448,7 @@ IEnumerable<User> result = vdb.Select<User>()
          [Required]
          [DefaultValue(0)]
          [Description("Whether logical deletion.")]
-         public sbyte? IsDeleted { get; set; }
+         public bool IsDeleted { get; set; }
 
          [Column(TypeName = "timestamp")]
          [Required]
@@ -451,35 +458,34 @@ IEnumerable<User> result = vdb.Select<User>()
          public DateTime? CreateTime { get; set; }
      }
 ```
-1. The int attributes of the `[Key]` and `[Identity]` labels are set, and the mapped data columns are auto-growing columns.
-1. The fields identified by `[Key]` and `[Required]` are required. There is no need to repeatedly set these two properties for the same attribute.
-1. The `[Identity]` tag (automatic growth) only takes effect for int type columns. After setting DefaultValue for non-int type columns, the `[Identity]` tag will be ignored.
-1. For attribute mapping columns with the `[Computed]` tag set, the default value will be calculated during both insertion and update. The default value without `[Computed]` will only be calculated during insertion.
 1. If the attribute of the `[Column]` tag is not set, the attribute name will be used to generate the column name in the corresponding form according to the database brand, and the corresponding column type and default maximum length will also be generated according to the data type of the attribute.
+1. The attribute identified by [Key]' is mapped to a required primary key field, and there is no need to add the [Required] attribute to the same attribute again.
+1. The `[Identity]` tag (automatic growth) only takes effect for int type columns. After setting DefaultValue for non-int type columns, the `[Identity]` tag will be ignored.
+1. It is recommended to set the int type attribute (mostly found in the Id field) that is set to auto-increment (using the `[Identity]` tag) to the nullable type "int?", otherwise the sql insertion content will include a value of 0 This field, however, can be executed successfully.
+1. For attribute mapping columns with the `[Computed]` tag set, the default value will be calculated during both insertion and update. The default value without `[Computed]` will only be calculated during insertion.
 1. If the value of a required item is not set when inserting data, and the item does not have a default value, the Insert statement will automatically increase the default value of the item type based on the content of `TypeName`. If `TypeName` is not set, the closest field type will be assigned based on the attribute type.
 1. When using entity classes to insert records, it is recommended to set all mapped attributes to nullable types. The reason is that non-null attributes in entity classes will automatically generate default values, and fields with values will be added to the SQL statement.
-1. When inserting records using an object instance, if the value of the attribute mapped to a timestamp type field is not set, execution will fail because the minimum time is automatically generated. Solution 1. Set the property to a nullable type. 2. Change the timestamp to time type. 3. Set the attribute value mapped by this field to be within the range allowed by the timestamp.
-1. It is recommended to set the int type attribute (mostly found in the Id field) that is set to auto-increment (using the `[Identity]` tag) to the nullable type "int?", otherwise the sql insertion content will include a value of 0 This field, however, can be executed successfully.
+1. When using object instance to insert records, if the value of the attribute mapped to a timestamp type field is not set, execution will fail because the minimum time is automatically generated. Solution 1. Set the property to a nullable type. 2. Change the timestamp to time type. 3. Set the attribute value mapped by this field to be within the range allowed by the timestamp.
 1. When inserting in batches, all attributes mapped to required fields with default values must be set or none of the values must be set. Because there is an object in the parameter collection that has this field set, this field will appear in the SQL statement, and other records that do not have this field set will not be executed successfully due to lack of parameters.
 1. `[ForeignKey]` example:
 ```C#
 public class User
 {
-     public int Id { get; set; }
-     ...
-     public List<Order> Orders { get; set; }
+    public int Id { get; set; }
+    ...
+    public List<Order> Orders { get; set; }
 }
 
 public class Order
 {
-     public int OrderId { get; set; }
-     [ForeignKey("Seller")]
-     public int SellerId { get; set; }
-     [ForeignKey("Buyer")]
-     public int BuyerId { get; set; }
-     ...
-     public User Seller { get; set; }
-     public User Buyer { get; set; }
+    public int OrderId { get; set; }
+    [ForeignKey(nameof(Seller))]
+    public int SellerId { get; set; }
+    [ForeignKey(nameof(Buyer))]
+    public int BuyerId { get; set; }
+    ...
+    public User Seller { get; set; }
+    public User Buyer { get; set; }
 }
 ```
 #### Manipulate databases and data tables
@@ -517,24 +523,34 @@ codeTool.NameSpace = "MyDemo"; // If not specified, the current project name wil
 |Parameters of CodeTool|Description|Type|Default value|
 |-|-|-|-|
 |`Connection`|Data Connection|`DbConnection`|None|
+|`Language`|The programming language used to generate content|`ProgrammingLanguage`|CSharp|
 |`Tables`|Name of data table|`string[]`|All tables|
 |`Types`|Generate the corresponding class name based on the data table name|`string[]`|None|
-|`IgnoredColumns`|Columns to be ignored|`string[]`|None|
-|`NameSpace`|Namespace|`string`|Current project name|
-|`BaseTypes`|Base class or interface|`string[]`|None|
-|`Language`|The programming language used to generate content|`ProgrammingLanguage`|CSharp|
 ##### Create Model based on data table (DB First)
 ```C#
 var result1 = codeTool.CreateModel().ToFile();
 ```
+|Parameters of CreateModel|Description|Type|Default value|
+|-|-|-|-|
+|`NameSpace`|Namespace|`string`|Current project name|
+|`BaseTypes`|Base class or interface|`string[]`|None|
+|`IgnoredColumns`|Columns to be ignored|`string[]`|None|
 ##### Create warehouse interface based on the data table
 ```C#
 var result2 = codeTool.CreateIRepository().ToFile();
 ```
+|Parameters of CreateIRepository|Description|Type|Default value|
+|-|-|-|-|
+|`NameSpace`|Namespace|`string`|Current project name|
+|`BaseTypes`|Base class or interface|`string[]`|None|
 ##### Create warehouse based on the data table
 ```C#
 var result3 = codeTool.CreateRepository().ToFile();
 ```
+|Parameters of CreateRepository|Description|Type|Default value|
+|-|-|-|-|
+|`NameSpace`|Namespace|`string`|Current project name|
+|`BaseTypes`|Base class or interface|`string[]`|None|
 ##### Insert registration Ioc code dependency injection
 ```C#
 var result4 = codeTool.RegisterIoC().InsertFile();
@@ -543,6 +559,11 @@ var result4 = codeTool.RegisterIoC().InsertFile();
 ```C#
 var result5 = codeTool.CreateWebAPIController().ToFile();
 ```
+|Parameters of CreateWebAPIController|Description|Type|Default value|
+|-|-|-|-|
+|`NameSpace`|Namespace|`string`|Current project name|
+|`BaseTypes`|Base class or interface|`string[]`|None|
+###### General Method
 |Method|Method description|Parameters|Parameter description|Type|Default value|
 |-|-|-|-|-|-|
 |`ToCodeString()`|Output the generated results to a string|None||||
@@ -785,10 +806,10 @@ public class User
 {
     public int Id { get; set; }
     ...
-    [ForeignKey("Creator")]
+    [ForeignKey(nameof(Creator))]
     public int CreatorId { get; set; }
 
-    [ForeignKey("Updater")]
+    [ForeignKey(nameof(Updater))]
     public int UpdaterId { get; set; }
 
     public User Creator { get; set; }
@@ -803,7 +824,7 @@ public class User
 IEnumerable<User> sel1 = vdb.Select<User, User, User, Order>()
     .LeftJoin((u, u1, u2, o) => u.CreatorId == u1.Id)
     .LeftJoin((u, u1, u2, o) => u.UpdaterId == u2.Id)
-    .LeftJoin((u, u1, u2, o) => u.Id == o.UserId && o.IsDeleted == 0)
+    .LeftJoin((u, u1, u2, o) => u.Id == o.UserId && o.IsDeleted == false)
     .Where((u, u1, u2, o) => u.Age > 20)
     .OrderBy((u, u1, u2, o) => u.Age)
     .GetData();
@@ -814,10 +835,10 @@ public class User
     public int Id { get; set; }
     ...
     
-    [ForeignKey("Creator")]
+    [ForeignKey(nameof(Creator))]
     public int CreatorId { get; set; }
 
-    [ForeignKey("Updater")]
+    [ForeignKey(nameof(Updater))]
     public int UpdaterId { get; set; }
 
     public User Creator { get; set; }
@@ -833,7 +854,7 @@ public class User
 ```C#
 IEnumerable<User> result = vdb.Select<User, Order>()
     .FromQuery(vdb.Select<User>(u => new { u.Id, u.Name })
-                .Where(u => u.IsDeleted == 0)
+                .Where(u => u.IsDeleted == false)
                 .OrderBy(u => u.ShowOrder)
                 .Page(1, 10))
     .LeftJoin((u, o) => u.Id == o.UserId)
@@ -863,9 +884,9 @@ IEnumerable<User> result = vdb.Select<User, Order>()
 ```
 ##### 递归查询[^3]
 适用于查询无限分级的表结构。例如表中含有ParentId字段，用来记录当前记录的上级。
-+ 使用“InnerJoin”的第一个表达式参数中设置标识字段与其父标识字段的关系，如果表达式中代表父Id的字段在等号左侧为向上递归，在等号右侧为向下递归，并在第二个表达式参数中设置递归结束的条件。
++ 使用“InnerJoin”表达式的第一个参数设置标识字段（例如：Id）与父标识字段（例如：ParentId）的关系，如果表达式中父标识字段在等号左侧为向上递归，在等号右侧为向下递归，并在第二个表达式参数中设置递归结束的条件。
 + 第三个表达式为可选参数，如果设置该参数为一个字段映射的属性，VDB将使用该属性作为条件，将查询结果转化为树结构。
-+ 生成树结构的结果要求主表映射的Model中包含有主表同类型的泛型List集合属性。
++ 生成树结构的结果要求表映射的Model中包含有与表同类型的泛型List集合属性。
 + 适用于SQLServer2005、MySql8.0（2018年发布）、SQLite 3.8.3（2014-02-03发布）及更新版本。
 + 最大递归深度：SQLServer没有递归深度的限制，MySQL为4,294,967,295，SQLite为1000。
 ```C#
@@ -886,16 +907,6 @@ IEnumerable<User> result = vdb.Select<User, Order>((u, o) => new { u.Id, u.Paren
     .InnerJoin((u) => u.Id == u.ParentId, u => u.Id == 1, u => u.ParentId)
     .GetData();
 ```
-##### 递归查询结果整理
-使用Voy.DALBase.Tools命名空间中DataTool类的扩展方法“ToListByParent()”，可以将向上递归查询的结果转化为有序结果集。例如：
-```C#
-var result = vdb.Select<BizColumn>().InnerJoin(x => x.ParentId == x.Id, x => x.Id == 28).GetData().FirstOrDefault(r => r.Id == 28);
-if (result != null)
-{
-    List<BizColumn> columns = result.ToListByParent(r => r.Parent);
-    string path = string.Join("/", columns.Select(c => c.Name));
-}
-```
 ##### 聚合函数
 ```C#
 public class User
@@ -912,7 +923,7 @@ public class User
 IEnumerable<User> result = vdb.Select<User>()
      .Sum(u => u.Age, "SumForDeletedEmployeeAge")
      .Count(u => u.Id, "CountForDeletedEmployee")
-     .Where(u => u.IsDeleted == 0)
+     .Where(u => u.IsDeleted == false)
      .GroupBy(u => u.Gender)
      .GroupBy(u => u.Type)
      .GetData();
@@ -927,7 +938,7 @@ IEnumerable<User> result = vdb.Select<User>()
 ##### 条件函数
 ```C#
 IEnumerable<User> result = vdb.Select<User>()
-    .If(u => u.IsDeleted == 0 ? "未删除" : "已删除", "删除状态")
+    .If(u => u.IsDeleted == false ? "未删除" : "已删除", "删除状态")
     .IfNull(u => u.Name ?? "空名字")
     .GetData();
 ```
@@ -935,7 +946,23 @@ IEnumerable<User> result = vdb.Select<User>()
 |-|-|-|:-:|
 |`If()`|判断条件如果为真，则返回?后面的第一个值，否则返回第二个值。|Lambda表达式，临时列名（可选）|∞|
 |`IfNull()`|判断对象如果为空，则返回??后面的值。|Lambda表达式|∞|
-
+##### 查询结果整理
+###### 递归查询结果整理为有序集合
+使用Voy.DALBase.Tools命名空间中DataTool类的扩展方法“ToListByParent()”，可以将向上递归查询的结果转化为有序结果集。例如：
+```C#
+var result = vdb.Select<BizColumn>().InnerJoin(x => x.ParentId == x.Id, x => x.Id == 28).GetData().FirstOrDefault(r => r.Id == 28);
+if (result != null)
+{
+    List<BizColumn> columns = result.ToListByParent(r => r.Parent);
+    string path = string.Join("/", columns.Select(c => c.Name));
+}
+```
+###### 将源集合对象的属性值赋给目标集合中具有相同名称和类型的属性。
+使用Voy.DALBase.Tools命名空间中DataTool类的扩展方法“CopyToList<TSource, TTarget>()”，可以将查询结果集合中的属性值，复制给目标集合中具有相同名称和类型的属性。例如：
+```C#
+var query = vdb.Select<User, Order>().LeftJoin((u, o) => u.Id == o.UserId);
+var result = query.GetData().CopyTo<User, UserDto>();
+```
 #### 数据模型
 + 在不指定数据表/数据列名称的情况下，VDB会根据映射的数据库品牌，应用不同的命名策略来映射类名->数据表名、属性名->数据列名。
 + 在类和属性上分别使用`[Table]`和`[Column]`标签可以指定映射的数据表和数据列。
@@ -1003,7 +1030,7 @@ IEnumerable<User> result = vdb.Select<User>()
         [Required]
         [DefaultValue(0)]
         [Description("是否逻辑删除。")]
-        public sbyte? IsDeleted { get; set; }
+        public bool IsDeleted { get; set; }
 
         [Column(TypeName = "timestamp")]
         [Required]
@@ -1013,15 +1040,14 @@ IEnumerable<User> result = vdb.Select<User>()
         public DateTime? CreateTime { get; set; }
     }
 ```
-1. 设置了`[Key]`和`[Identity]`标签的int型属性，映射的数据列是自动增长列。
-1. `[Key]`、`[Required]`标识的字段均为必填，无需对同一个属性重复设置这两个特性。
-1. `[Identity]`标签（自动增长）只对int类型的列生效，非int类型列设置DefaultValue后，将忽略`[Identity]`标签。
-1. 设置了`[Computed]`标签的属性映射列，在插入和更新时默认值均会被计算，没有设置`[Computed]`的默认值只在插入时计算。
 1. 没有设置`[Column]`标签的属性，会根据数据库品牌，用属性名生成相应形式的列名，也会根据属性的数据类型生成相应的列类型及默认最大长度。
+1. `[Key]`标识的属性映射为必填主键字段，无需对同一个属性再次添加`[Required]`特性。
+1. `[Identity]`标签只对int类型的列生效，非int类型列设置DefaultValue后，将忽略`[Identity]`标签。
+1. 设置为自增长（使用了`[Identity]`标签）的int类型的属性（多见于Id字段）建议设置为可空类型“int？”，否则会在sql插入内容中包括值为0的该字段，但是可以执行成功。
+1. 设置了`[Computed]`标签的属性映射列，在插入和更新时默认值均会被计算，没有设置`[Computed]`的默认值只在插入时计算。
 1. 插入数据时如果没有设置必填项的数值，该项目也没有默认值，Insert语句将根据`TypeName`的内容自动增加该项目类型的默认值。如果没有设置`TypeName`，则会根据属性类型分配最接近的字段类型。
 1. 使用实体类插入记录时，推荐将映射的属性全部设置为可空类型。原因是实体类里的非空属性会自动产生默认值，有值的字段都会加入SQL语句中。
-1. 在使用对象实例插入记录时，如果没有设置映射为时间戳类型字段的属性的值，会由于自动生成了最小时间而无法执行。解决方法1.将属性设置为可空类型。2.时间戳改为时间类型。3.设置该字段映射的属性值在时间戳允许的范围内。
-1. 设置为自增长（使用了`[Identity]`标签）的int类型的属性（多见于Id字段）建议设置为可空类型“int？”，否则会在sql插入内容中包括值为0的该字段，但是可以执行成功。
+1. 使用对象实例插入记录时，如果没有设置映射为时间戳类型字段的属性的值，会由于自动生成了最小时间而无法执行。解决方法1.将属性设置为可空类型。2.时间戳改为时间类型。3.设置该字段映射的属性值在时间戳允许的范围内。
 1. 批量插入时，有默认值的必填字段映射的属性要全部设置或全部不设置数值。因为参数的集合中有一个对象设置了该字段，就会在SQL语句中出现该字段，其他未设置该字段的记录则因缺少参数而不能执行成功。
 1. `[ForeignKey]`示例：
 ```C#
@@ -1035,9 +1061,9 @@ public class User
 public class Order
 {
     public int OrderId { get; set; }
-    [ForeignKey("Seller")]
+    [ForeignKey(nameof(Seller))]
     public int SellerId { get; set; }
-    [ForeignKey("Buyer")]
+    [ForeignKey(nameof(Buyer))]
     public int BuyerId { get; set; }
     ...
     public User Seller { get; set; }
@@ -1079,24 +1105,34 @@ codeTool.NameSpace = "MyDemo";  // 如不指定则使用当前项目名称。
 |CodeTool 的参数|说明|类型|默认值|
 |-|-|-|-|
 |`Connection`|数据连接|`DbConnection`|无|
+|`Language`|生成内容使用的编程语言|`ProgrammingLanguage`|CSharp|
 |`Tables`|数据表的名称|`string[]`|全部表|
 |`Types`|根据数据表名称生成相应的类名|`string[]`|无|
-|`IgnoredColumns`|需要忽略的列|`string[]`|无|
-|`NameSpace`|命名空间|`string`|当前项目名称|
-|`BaseTypes`|基类或接口|`string[]`|无|
-|`Language`|生成内容使用的编程语言|`ProgrammingLanguage`|CSharp|
 ##### 根据数据表创建Model（DB First）
 ```C#
 var result1 = codeTool.CreateModel().ToFile();
 ```
+|CreateModel 的参数|说明|类型|默认值|
+|-|-|-|-|
+|`NameSpace`|命名空间|`string`|当前项目名称|
+|`BaseTypes`|基类或接口|`string[]`|无|
+|`IgnoredColumns`|需要忽略的列|`string[]`|无|
 ##### 根据数据表创建仓库接口
 ```C#
 var result2 = codeTool.CreateIRepository().ToFile();
 ```
+|CreateIRepository 的参数|说明|类型|默认值|
+|-|-|-|-|
+|`NameSpace`|命名空间|`string`|当前项目名称|
+|`BaseTypes`|基类或接口|`string[]`|无|
 ##### 根据数据表创建仓库
 ```C#
 var result3 = codeTool.CreateRepository().ToFile();
 ```
+|CreateRepository 的参数|说明|类型|默认值|
+|-|-|-|-|
+|`NameSpace`|命名空间|`string`|当前项目名称|
+|`BaseTypes`|基类或接口|`string[]`|无|
 ##### 插入注册Ioc代码依赖注入
 ```C#
 var result4 = codeTool.RegisterIoC().InsertFile();
@@ -1105,6 +1141,11 @@ var result4 = codeTool.RegisterIoC().InsertFile();
 ```C#
 var result5 = codeTool.CreateWebAPIController().ToFile();
 ```
+|CreateWebAPIController 的参数|说明|类型|默认值|
+|-|-|-|-|
+|`NameSpace`|命名空间|`string`|当前项目名称|
+|`BaseTypes`|基类或接口|`string[]`|无|
+###### 通用方法
 |方法|方法说明|参数|参数说明|类型|默认值|
 |-|-|-|-|-|-|
 |`ToCodeString()`|将生成结果输出至字符串|无||||
