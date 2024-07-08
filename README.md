@@ -330,7 +330,12 @@ IEnumerable<User> result = vdb.Select<User, Order>((u, o) => new { u.Id, u.Paren
 public class User
 {
         public int Id { get; set; }
+        public int Gender { get; set; }
+        public int Age { get; set; }
+        public int Type { get; set; }
         public bool IsDeleted { get; set; }
+        [NotMapped]
+        public int SumAge { get; set; }
         [NotMapped]
         public int SumForDeletedEmployeeAge { get; set; }
         [NotMapped]
@@ -339,10 +344,11 @@ public class User
 ```
 ```C#
 IEnumerable<User> result = vdb.Select<User>()
-     .Sum(u => u.Age, "SumForDeletedEmployeeAge")
-     .Count(u => u.Id, "CountForDeletedEmployee")
+     .Sum(o => o.Age == 0 ? 1 : 18, o => o.SumAge)
+     .Sum(u => u.Age, u => u.SumForDeletedEmployeeAge)
+     .Count(u => u.Id, u => u.CountForDeletedEmployee)
      .Where(u => u.IsDeleted == false)
-     .GroupBy(u => u.Gender)
+     .GroupBy(u => new {u.Gender, u.Type})
      .GroupBy(u => u.Type)
      .GetData();
 ```
@@ -356,13 +362,13 @@ IEnumerable<User> result = vdb.Select<User>()
 ##### Conditional function
 ```C#
 IEnumerable<User> result = vdb.Select<User>()
-     .If(u => u.IsDeleted == false ? "Not deleted" : "Deleted", "Deleted status")
+     .If(u => u.IsDeleted == false ? "Not deleted" : "Deleted", u => u.Deleted status)
      .IfNull(u => u.Name ?? "Empty name")
      .GetData();
 ```
 |Method|Description|Parameters|Number of uses|
 |-|-|-|:-:|
-|`If()`|If the judgment condition is true, return the first value after ?, otherwise return the second value. |Lambda expression, temporary column name (optional) |∞|
+|`If()`|If the judgment condition is true, return the first value after ?, otherwise return the second value. |Lambda expression, returns properties for the result mapping (optional) (optional) |∞|
 |`IfNull()`|If the judgment object is empty, the value after ?? will be returned. |Lambda expression|∞|
 ##### Organize query result
 ######  Recursive query results are organized into an ordered set
@@ -511,10 +517,10 @@ bool result = vdb.TableIsExist<User>().GetData();
 IEnumerable<dynamic> result = vdb.GetTableStructure("user").GetData();
 ```
 
-#### Create data warehouse supporting files based on data tables
+#### Generate repository Pattern related files based on data tables (DB First)
 + Create .NET source files at the specified location through the code tool (`CodeTool`) object.
 + You can specify parameters such as the language used in the source file (C#, VB.net, F#), whether to overwrite the file with the same name (not overwritten by default), and the saving location.
-##### Instantiation tool
+##### Initialize code tool
 ```C#
 var codeTool = new CodeTool(conn);
 codeTool.Language = ProgrammingLanguage.CSharp; //If not specified, C# will be used.
@@ -525,7 +531,7 @@ codeTool.Language = ProgrammingLanguage.CSharp; //If not specified, C# will be u
 |`Language`|The programming language used to generate content|`ProgrammingLanguage`|CSharp|
 |`Tables`|Name of data table|`string[]`|All tables|
 |`Types`|Generate the corresponding class name based on the data table name|`string[]`|None|
-##### Create Model based on data table (DB First)
+##### Generate model code based on data table structure and save it to a file
 ```C#
 var result1 = codeTool.CreateModel().ToFile();
 ```
@@ -534,7 +540,7 @@ var result1 = codeTool.CreateModel().ToFile();
 |`nameSpace`|Namespace|`string`|Current project name|
 |`baseTypes`|Base class or interface|`string[]`|None|
 |`ignoredColumns`|Columns to be ignored|`string[]`|None|
-##### Create warehouse interface based on the data table
+##### Generate repository interface code based on data table structure and save it to a file
 ```C#
 var result2 = codeTool.CreateIRepository().ToFile();
 ```
@@ -542,7 +548,7 @@ var result2 = codeTool.CreateIRepository().ToFile();
 |-|-|-|-|
 |`nameSpace`|Namespace|`string`|Current project name|
 |`baseTypes`|Base class or interface|`string[]`|None|
-##### Create warehouse based on the data table
+##### Generate repository code based on data table structure and save it to a file
 ```C#
 var result3 = codeTool.CreateRepository().ToFile();
 ```
@@ -550,11 +556,14 @@ var result3 = codeTool.CreateRepository().ToFile();
 |-|-|-|-|
 |`nameSpace`|Namespace|`string`|Current project name|
 |`baseTypes`|Base class or interface|`string[]`|None|
-##### Insert registration Ioc code dependency injection
+##### Generate IoC registration code and perform dependency injection based on data table structure
 ```C#
-var result4 = codeTool.RegisterIoC().InsertFile();
+var result4 = codeTool.RegisterIoC(nameof(conn)).InsertFile();
 ```
-##### Create WebAPIController based on the data table
+|Parameters of RegisterIoC|Description|Type|Default value|
+|-|-|-|-|
+|`dbConnectionName`|Name of database connection|`string`|None|
+##### Generate WebAPIController code based on data table structure and save it to a file
 ```C#
 var result5 = codeTool.CreateWebAPIController().ToFile();
 ```
@@ -911,7 +920,12 @@ IEnumerable<User> result = vdb.Select<User, Order>((u, o) => new { u.Id, u.Paren
 public class User
 {
         public int Id { get; set; }
+        public int Gender { get; set; }
+        public int Age { get; set; }
+        public int Type { get; set; }
         public bool IsDeleted { get; set; }
+        [NotMapped]
+        public int SumAge { get; set; }
         [NotMapped]
         public int SumForDeletedEmployeeAge { get; set; }
         [NotMapped]
@@ -920,10 +934,11 @@ public class User
 ```
 ```C#
 IEnumerable<User> result = vdb.Select<User>()
-     .Sum(u => u.Age, "SumForDeletedEmployeeAge")
-     .Count(u => u.Id, "CountForDeletedEmployee")
+     .Sum(o => o.Age == 0 ? 1 : 18, o => o.SumAge)
+     .Sum(u => u.Age, u => u.SumForDeletedEmployeeAge)
+     .Count(u => u.Id, u => u.CountForDeletedEmployee)
      .Where(u => u.IsDeleted == false)
-     .GroupBy(u => u.Gender)
+     .GroupBy(u => new {u.Gender, u.Type})
      .GroupBy(u => u.Type)
      .GetData();
 ```
@@ -937,13 +952,13 @@ IEnumerable<User> result = vdb.Select<User>()
 ##### 条件函数
 ```C#
 IEnumerable<User> result = vdb.Select<User>()
-    .If(u => u.IsDeleted == false ? "未删除" : "已删除", "删除状态")
+    .If(u => u.IsDeleted == false ? "未删除" : "已删除", u => u.删除状态)
     .IfNull(u => u.Name ?? "空名字")
     .GetData();
 ```
 |方法|说明|参数|可使用次数|
 |-|-|-|:-:|
-|`If()`|判断条件如果为真，则返回?后面的第一个值，否则返回第二个值。|Lambda表达式，临时列名（可选）|∞|
+|`If()`|判断条件如果为真，则返回?后面的第一个值，否则返回第二个值。|Lambda表达式，返回结果映射的属性（可选）|∞|
 |`IfNull()`|判断对象如果为空，则返回??后面的值。|Lambda表达式|∞|
 ##### 查询结果整理
 ###### 递归查询结果整理为有序集合
@@ -1092,10 +1107,10 @@ bool result = vdb.TableIsExist<User>().GetData();
 IEnumerable<dynamic> result = vdb.GetTableStructure("user").GetData();
 ```
 
-#### 根据数据表创建数据仓库配套文件
+#### 根据数据表生成仓储模式的相关文件（DB First）
 + 通过代码工具（`CodeTool`）对象，在指定位置创建.NET源文件。
 + 可指定源文件中使用的语种（C#、VB.net、F#）、是否覆盖同名文件（默认不覆盖）和保存位置等参数。
-##### 实例化工具
+##### 初始化代码工具
 ```C#
 var codeTool = new CodeTool(conn);
 codeTool.Language = ProgrammingLanguage.CSharp; //如不指定则使用C#。
@@ -1106,16 +1121,16 @@ codeTool.Language = ProgrammingLanguage.CSharp; //如不指定则使用C#。
 |`Language`|生成内容使用的编程语言|`ProgrammingLanguage`|CSharp|
 |`Tables`|数据表的名称|`string[]`|全部表|
 |`Types`|根据数据表名称生成相应的类名|`string[]`|无|
-##### 根据数据表创建Model（DB First）
+##### 根据数据表结构生成model代码并保存至文件
 ```C#
-var result1 = codeTool.CreateModel().ToFile();
+var result1 = codeTool.GenerateModel().ToFile();
 ```
 |CreateModel 的参数|说明|类型|默认值|
 |-|-|-|-|
 |`nameSpace`|命名空间|`string`|当前项目名称|
 |`baseTypes`|基类或接口|`string[]`|无|
 |`ignoredColumns`|需要忽略的列|`string[]`|无|
-##### 根据数据表创建仓库接口
+##### 根据数据表结构生成repository接口代码并保存至文件
 ```C#
 var result2 = codeTool.CreateIRepository().ToFile();
 ```
@@ -1123,7 +1138,7 @@ var result2 = codeTool.CreateIRepository().ToFile();
 |-|-|-|-|
 |`nameSpace`|命名空间|`string`|当前项目名称|
 |`baseTypes`|基类或接口|`string[]`|无|
-##### 根据数据表创建仓库
+##### 根据数据表结构生成repository代码并保存至文件
 ```C#
 var result3 = codeTool.CreateRepository().ToFile();
 ```
@@ -1131,11 +1146,14 @@ var result3 = codeTool.CreateRepository().ToFile();
 |-|-|-|-|
 |`nameSpace`|命名空间|`string`|当前项目名称|
 |`baseTypes`|基类或接口|`string[]`|无|
-##### 插入注册Ioc代码依赖注入
+##### 根据数据表结构生成IoC注册代码并进行依赖注入
 ```C#
-var result4 = codeTool.RegisterIoC().InsertFile();
+var result4 = codeTool.RegisterIoC(nameof(conn)).InsertFile();
 ```
-##### 根据数据表创建WebAPIController
+|RegisterIoC 的参数|说明|类型|默认值|
+|-|-|-|-|
+|`dbConnectionName`|数据连接名称|`string`|无|
+##### 根据数据表结构生成WebAPIController代码并保存至文件
 ```C#
 var result5 = codeTool.CreateWebAPIController().ToFile();
 ```
