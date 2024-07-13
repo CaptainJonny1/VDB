@@ -116,13 +116,13 @@ VDBSingleton.Instance.VDB = new VDB(conn);  //singleton mode.
 + Nullable properties will have a null value inserted, non-nullable properties will have a default value inserted.
 ```C#
 //Insert data with Lambda expressions.
-int? ins1 = vdb.Insert<User>(u => new User { Name = "Tom", Age = 30 }).Execute();
+int ins1 = vdb.Insert<User>(u => new User { Name = "Tom", Age = 30 }).Execute();
 
 //Insert data with entity objects. (<TClass> can be omitted)
-int? ins2 = vdb.Insert(new User { Name = "Jerry", Age = 40 }).Execute();
+int ins2 = vdb.Insert(new User { Name = "Jerry", Age = 40 }).Execute();
 
 //Insert multiple data.
-int? ins3 = vdb.Insert<User>(new List<User>
+int ins3 = vdb.Insert<User>(new List<User>
 {
     new User { Name = "Doctor", Age = 10, CreateTime = DateTime.Now },
     new User { Name = "Bashful", Age = 20, CreateTime = DateTime.Now },
@@ -141,35 +141,37 @@ int? ins3 = vdb.Insert<User>(new List<User>
 + Properties with the same name as those in `TClass` in anonymous object parameters will not appear in the generated SQL statement if they have the `[DatabaseGeneratedOption.Computed]` tag.
 ```C#
 //Update data with Lambda expressions.
-int? upd1 = vdb.Update<User>(u => new User { Id = 1, Name = "Sleepy", Age = 50 }).Execute();
+int upd1 = vdb.Update<User>(u => new User { Id = 1, Name = "Sleepy", Age = 50 }).Execute();
 
 //Update data with expression + Where method.
-int? upd2 = vdb.Update<User>(u => new User { Name = "Sneezy", Age = 60 }).Where(u => u.Name == "Happy").Execute();
+int upd2 = vdb.Update<User>(u => new User { Name = "Sneezy", Age = 60 }).Where(u => u.Name == "Happy").Execute();
 
 //Update data with an anonymous object.
-int? upd3 = vdb.Update<User>(new { Id = 1, Name = "Happy", Age = 70 }).Execute();
+int upd3 = vdb.Update<User>(new { Id = 1, Name = "Happy", Age = 70 }).Execute();
 
 //Update data with anonymous object update + Where method.
-int? upd4 = vdb.Update<User>(new { Name = "Dopey", Age = 80 }).Where(u => u.Name == "Grumpy").Execute();
+int upd4 = vdb.Update<User>(new { Name = "Dopey", Age = 80 }).Where(u => u.Name == "Grumpy").Execute();
 
 //Update data with Lambda expressions, and perform operations such as addition, subtraction, multiplication, and division based on your own value. Notice! This kind of operation requires actively adding a Where statement to control the update scope, otherwise the entire table will be updated.
-int? upd5 = vdb.Update<User>(u => (u.Number + 1) & (u.Age - 2) & (u.Order * 3)).Where(u => u.Id == 1);
+int upd5 = vdb.Update<User>(u => (u.Number + 1) & (u.Age - 2) & (u.Order * 3)).Where(u => u.Id == 1);
 ```
 #### Delete
-+ Use Lambda expressions and entity objects as parameters to delete records, or use the `Where()` method as a filter condition to delete records and return the number of deleted records.
-+ When using entity objects to filter records as parameters, if the object's attribute is a numerical default value (such as 0 for int), it will have no effect. For example, do not use `new User { Age = 0 }`.
-+ When there are parameters and `Where()` is also used for update filtering, the filtering conditions will be AND combined.
++ Use Lambda expressions and anonymous Type objects as parameters to delete records, or use the `Where()` method as a filter condition to delete records and return the number of deleted records.
++ If you use the 'Where()' method when filtering records with anonymous objects as parameters, the filter condition property with the same name as the expression in the object will be overwritten, and the non-duplicate condition property will be merged with AND.
 + When there are no parameters and `Where()` is not used for update filtering, the update operation will not be executed for data security.
 ```C#
 //Delete data with "Where" method.
-int? del1 = vdb.Delete<User>().Where(u => u.Name == "Tom").Execute();
+int del1 = vdb.Delete<User>().Where(u => u.Name == "Tom").Execute();
+
+//Delete data with Anonymous Type Object.
+int del1 = vdb.Delete<User>(new { Name == "Tom" }).Execute();
 
 //Delete multiple data with "Where" method.
 List<int> ids = new List<int>{ 1, 2 };
-int? del2 = vdb.Delete<User>().Where(u => ids.ToArray().Contains(u.Id)).Execute();
+int del2 = vdb.Delete<User>().Where(u => ids.ToArray().Contains(u.Id)).Execute();
 
 //Delete multiple data with IList<TClass>. (<TClass> can be omitted, All properties need to be assigned a value to take effect.)
-int? del3 = vdb.Delete(new List<User>() {
+int del3 = vdb.Delete(new List<User>() {
     new User(){ Id = 1, Name = "Tom", Age = 2},
     new User(){ Id = 2, Name= "Jerry", Age = 1 }
 }).Execute();
@@ -304,20 +306,21 @@ IEnumerable<User> result = vdb.Select<User, Order>()
 Suitable for querying infinite hierarchical table structures. For example, the table contains the ParentId field, which is used to record the superior of the current record.
 + Use the first parameter of the "InnerJoin" expression to set the relationship between the identity field (e.g., Id) and the parent identity field (e.g., ParentId), if the parent identity field is recursive up to the left of the equal sign and down to the right of the equal sign, and set the condition for the end of recursion in the second expression parameter.
 + The third expression is an optional parameter. If this parameter is set to a field mapping attribute, VDB will use this attribute as a condition to convert the query results into a tree structure.
++ If an anonymous class expression is used in the parameters of the Select expression of a recursive query to select a display column, and when a result filter is performed using a "Where" expression, the filter attribute used in the "Where" expression must appear in the column selected by the anonymous class expression parameter of the "Select" expression.
 + The result of the spanning tree structure requires that the Model mapped by the main table contains a generic List collection attribute of the same type as the main table.
 + Applicable to SQLServer2005, MySql8.0 (Released in 2018), SQLite 3.8.3 (Released in 2014-02-03) and newer versions.
 + Maximum recursion depth: SQLServer has no limit on the recursion depth. It is 4,294,967,295 for MySQL and 1000 for SQLite.
 ```C#
-     [Table("user")]
-     public class User
-     {
-         ···
-         public int Id { get; set; }
-         public int ParentId { get; set; }
-         ...
-         public List<User> Users { get; set; }
-         public List<Order> Orders { get; set; }
-     }
+[Table("user")]
+public class User
+{
+    ···
+    public int Id { get; set; }
+    public int ParentId { get; set; }
+    ...
+    public List<User> Users { get; set; }
+    public List<Order> Orders { get; set; }
+}
 ```
 ```C#
 IEnumerable<User> result = vdb.Select<User, Order>((u, o) => new { u.Id, u.ParentId, u.Name, u.ShowOrder, o.Product })
@@ -417,52 +420,52 @@ var result = query.GetData().CopyTo<User, UserDto>();
 |`[Required]`|The specified data field value is required. <br>Usage Example：`[Required]`<br>Namespace：System.ComponentModel.DataAnnotations|
 ##### Usage examples
 ```C#
-     /// <summary>
-     /// User
-     /// </summary>
-     [Table("user")]
-     public class User
-     {
-         [Column(Order = 0)]
-         [Key]
-         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-         public int Id { get; set; }
+/// <summary>
+/// User
+/// </summary>
+[Table("user")]
+public class User
+{
+    [Column(Order = 0)]
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public int Id { get; set; }
 
-         [Required]
-         [Description("Name.")]
-         [Column("name", TypeName = "varchar(50)")]
-         public string? Name { get; set; }
+    [Required]
+    [Description("Name.")]
+    [Column("name", TypeName = "varchar(50)")]
+    public string? Name { get; set; }
 
-         [Description("Age.")]
-         public int? Age { get; set; }
+    [Description("Age.")]
+    public int? Age { get; set; }
 
-         [Required]
-         [DefaultValue(0)]
-         [Description("Display order.")]
-         public int? ShowOrder { get; set; }
+    [Required]
+    [DefaultValue(0)]
+    [Description("Display order.")]
+    public int? ShowOrder { get; set; }
 
-         /// <summary>
-         /// user type.
-         /// </summary>
-         public UserType? UserType { get; set; }
+    /// <summary>
+    /// user type.
+    /// </summary>
+    public UserType? UserType { get; set; }
 
-         /// <summary>
-         /// Order List.
-         /// </summary>
-         public List<Order>? Orders { get; set; } = new List<Order>();
+    /// <summary>
+    /// Order List.
+    /// </summary>
+    public List<Order>? Orders { get; set; } = new List<Order>();
 
-         [Required]
-         [DefaultValue(0)]
-         [Description("Whether logical deletion.")]
-         public bool IsDeleted { get; set; }
+    [Required]
+    [DefaultValue(0)]
+    [Description("Whether logical deletion.")]
+    public bool IsDeleted { get; set; }
 
-         [Column(TypeName = "timestamp")]
-         [Required]
-         [DefaultValue("CURRENT_TIMESTAMP")]
-         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-         [Description("Creation time.")]
-         public DateTime? CreateTime { get; set; }
-     }
+    [Column(TypeName = "timestamp")]
+    [Required]
+    [DefaultValue("CURRENT_TIMESTAMP")]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    [Description("Creation time.")]
+    public DateTime? CreateTime { get; set; }
+}
 ```
 1. If the attribute of the `[Column]` tag is not set, the attribute name will be used to generate the column name in the corresponding form according to the database brand, and the corresponding column type and default maximum length will also be generated according to the data type of the attribute.
 1. The attribute identified by [Key]' is mapped to a required primary key field, and there is no need to add the [Required] attribute to the same attribute again.
@@ -498,15 +501,15 @@ public class Order
 + Use Lambda expressions to operate databases and data tables.
 ##### Create a data table based on Model (Code First)
 ```C#
-int? result = vdb.CreateTableIfNotExist<User>().Execute();
+int result = vdb.CreateTableIfNotExist<User>().Execute();
 ```
 ##### Remove data table
 ```C#
-int? result = vdb.DropTable<User>().Execute();
+int result = vdb.DropTable<User>().Execute();
 ```
 ##### Clear data table
 ```C#
-int? result = vdb.TruncateTable<User>().Execute();
+int result = vdb.TruncateTable<User>().Execute();
 ```
 ##### Check if the data table exists
 ```C#
@@ -533,7 +536,7 @@ codeTool.Language = ProgrammingLanguage.CSharp; //If not specified, C# will be u
 |`Types`|Generate the corresponding class name based on the data table name|`string[]`|None|
 ##### Generate model code based on data table structure and save it to a file
 ```C#
-var result1 = codeTool.CreateModel().ToFile();
+var result = codeTool.CreateModel().ToFile();
 ```
 |Parameters of CreateModel|Description|Type|Default value|
 |-|-|-|-|
@@ -542,15 +545,23 @@ var result1 = codeTool.CreateModel().ToFile();
 |`ignoredColumns`|Columns to be ignored|`string[]`|None|
 ##### Generate repository interface code based on data table structure and save it to a file
 ```C#
-var result2 = codeTool.CreateIRepository().ToFile();
+var result = codeTool.CreateIRepository().ToFile();
 ```
 |Parameters of CreateIRepository|Description|Type|Default value|
 |-|-|-|-|
 |`nameSpace`|Namespace|`string`|Current project name|
 |`baseTypes`|Base class or interface|`string[]`|None|
+##### Generate entity repository interface code based on data table structure and save it to a file
+```C#
+var result = codeTool.CreateIEntityRepository().ToFile();
+```
+|Parameters of CreateIEntityRepository|Description|Type|Default value|
+|-|-|-|-|
+|`nameSpace`|Namespace|`string`|Current project name|
+|`baseTypes`|Base class or interface|`string[]`|None|
 ##### Generate repository code based on data table structure and save it to a file
 ```C#
-var result3 = codeTool.CreateRepository().ToFile();
+var result = codeTool.CreateRepository().ToFile();
 ```
 |Parameters of CreateRepository|Description|Type|Default value|
 |-|-|-|-|
@@ -558,14 +569,26 @@ var result3 = codeTool.CreateRepository().ToFile();
 |`baseTypes`|Base class or interface|`string[]`|None|
 ##### Generate IoC registration code and perform dependency injection based on data table structure
 ```C#
-var result4 = codeTool.RegisterIoC(nameof(conn)).InsertFile();
+var result = codeTool.RegisterIoC(nameof(_connString)).InsertFile();
+```
+Executing this command inserts a statement to register VDB in the IoC container and some IoC container registration statements generated from the data table before `var app = builder.Build();` statement in `Program.cs`  file. For example:
+```C#
+public static void Main(string[] args)
+{
+    ...
+    builder.Services.AddScoped<Voy.DALBase.Interfaces.IVDB, Voy.DALBase.VDB>(r => new VDB(new MySqlConnection(_connString)));
+    builder.Services.AddScoped<IUserRepository, UserRepository>();
+    builder.Services.AddScoped<IUserSettingRepository, UserSettingRepository>();
+    var app = builder.Build();
+    ...
+}
 ```
 |Parameters of RegisterIoC|Description|Type|Default value|
 |-|-|-|-|
 |`dbConnectionName`|Name of database connection|`string`|None|
 ##### Generate WebAPIController code based on data table structure and save it to a file
 ```C#
-var result5 = codeTool.CreateWebAPIController().ToFile();
+var result = codeTool.CreateWebAPIController().ToFile();
 ```
 |Parameters of CreateWebAPIController|Description|Type|Default value|
 |-|-|-|-|
@@ -705,13 +728,13 @@ VDBSingleton.Instance.VDB = new VDB(conn);  //单例模式。
 + 可空的属性将插入空值，不可空属性将插入默认值。
 ```C#
 //使用Lambda表达式插入数据。
-int? ins1 = vdb.Insert<User>(u => new User { Name = "张三", Age = 30 }).Execute();
+int ins1 = vdb.Insert<User>(u => new User { Name = "张三", Age = 30 }).Execute();
 
 //使用实体对象插入数据。（可省略<TClass>）
-int? ins2 = vdb.Insert(new User { Name = "李四", Age = 40 }).Execute();
+int ins2 = vdb.Insert(new User { Name = "李四", Age = 40 }).Execute();
 
 //批量插入数据。
-int? ins3 = vdb.Insert<User>(new List<User>
+int ins3 = vdb.Insert<User>(new List<User>
 {
     new User { Name = "刘一", Age = 10, CreateTime = DateTime.Now },
     new User { Name = "陈二", Age = 20, CreateTime = DateTime.Now },
@@ -731,35 +754,37 @@ int? ins3 = vdb.Insert<User>(new List<User>
 + 匿名对象参数中与`TClass`中同名的属性，如果带有`[DatabaseGeneratedOption.Computed]`标签将不会出现在生成的SQL语句中。
 ```C#
 //用Lambda表达式更新数据。
-int? upd1 = vdb.Update<User>(u => new User { Id = 1, Name = "王五", Age = 50 }).Execute();
+int upd1 = vdb.Update<User>(u => new User { Id = 1, Name = "王五", Age = 50 }).Execute();
 
 //用表达式 + Where方法更新数据。
-int? upd2 = vdb.Update<User>(u => new User { Name = "赵六", Age = 60 }).Where(u => u.Name == "李四").Execute();
+int upd2 = vdb.Update<User>(u => new User { Name = "赵六", Age = 60 }).Where(u => u.Name == "李四").Execute();
 
 //用匿名对象更新数据。
-int? upd3 = vdb.Update<User>(new { Id = 1, Name = "孙七", Age = 70 }).Execute();
+int upd3 = vdb.Update<User>(new { Id = 1, Name = "孙七", Age = 70 }).Execute();
 
 //用匿名对象更新 + Where方法更新数据。
-int? upd4 = vdb.Update<User>(new { Name = "周八", Age = 80 }).Where(u => u.Name == "赵六").Execute();
+int upd4 = vdb.Update<User>(new { Name = "周八", Age = 80 }).Where(u => u.Name == "赵六").Execute();
 
 //用Lambda表达式更新数据，以自己数值为基数进行的加减乘除等运算。注意！此种操作需要主动添加Where语句控制更新范围，否则将全表更新。
-int? upd5 = vdb.Update<User>(u => (u.Number + 1) & (u.Age - 2) & (u.Order * 3)).Where(u => u.Id == 1);
+int upd5 = vdb.Update<User>(u => (u.Number + 1) & (u.Age - 2) & (u.Order * 3)).Where(u => u.Id == 1);
 ```
 #### 删除数据
-+ 使用Lambda表达式、实体对象做为参数删除记录，也可以用`Where()`方法作为筛选条件删除记录，返回删除的记录数量。
-+ 使用实体对象为参数筛选记录时，如果对象的属性是数值型的默认值（例如int的0）则无效果，例如不要使用`new User { Age = 0 }`。
-+ 当有参数，也使用`Where()`进行更新筛选时，筛选条件将进行AND合并。
++ 使用Lambda表达式、匿名对象做为参数删除记录，也可以用`Where()`方法作为筛选条件删除记录，返回删除的记录数量。
++ 如果使用匿名对象为参数筛选记录时同时使用`Where()`方法，对象中与表达式中相同名称的筛选用条件属性会被覆盖，不重复的条件属性将进行AND合并。
 + 当无参数，也没有使用`Where()`进行更新筛选时，为了数据安全更新操作将不会被执行。
 ```C#
 //用Where方法删除数据。
-int? del1 = vdb.Delete<User>().Where(u => u.Name == "张三").Execute();
+int del1 = vdb.Delete<User>().Where(u => u.Name == "张三").Execute();
+
+//用匿名对象删除数据。
+int del1 = vdb.Delete<User>(new { Name == "张三" }).Execute();
 
 //用Where方法批量删除数据。
 List<int> ids = new List<int>{ 1, 2 };
-int? del2 = vdb.Delete<User>().Where(u => ids.ToArray().Contains(u.Id)).Execute();
+int del2 = vdb.Delete<User>().Where(u => ids.ToArray().Contains(u.Id)).Execute();
 
 //使用 IList<TClass> 批量删除数据。 （<TClass>可以省略，所有属性都需要赋值才能生效。）
-int? del3 = vdb.Delete(new List<User>() {
+int del3 = vdb.Delete(new List<User>() {
     new User(){ Id = 1, Name = "张三", Age = 2},
     new User(){ Id = 2, Name= "李四", Age = 1 }
 }).Execute();
@@ -894,20 +919,21 @@ IEnumerable<User> result = vdb.Select<User, Order>()
 适用于查询无限分级的表结构。例如表中含有ParentId字段，用来记录当前记录的上级。
 + 使用“InnerJoin”表达式的第一个参数设置标识字段（例如：Id）与父标识字段（例如：ParentId）的关系，如果表达式中父标识字段在等号左侧为向上递归，在等号右侧为向下递归，并在第二个表达式参数中设置递归结束的条件。
 + 第三个表达式为可选参数，如果设置该参数为一个字段映射的属性，VDB将使用该属性作为条件，将查询结果转化为树结构。
++ 如果在递归查询的“Select”表达式的参数中使用了匿名类表达式来选择显示列，并且使用“Where”表达式进行结果筛选时，“Where”表达式中用到的筛选属性必须出现在“Select”表达式的匿名类表达式参数所选择的列中。
 + 生成树结构的结果要求表映射的Model中包含有与表同类型的泛型List集合属性。
 + 适用于SQLServer2005、MySql8.0（2018年发布）、SQLite 3.8.3（2014-02-03发布）及更新版本。
 + 最大递归深度：SQLServer没有递归深度的限制，MySQL为4,294,967,295，SQLite为1000。
 ```C#
-    [Table("user")]
-    public class User
-    {
-        ···
-        public int Id { get; set; }
-        public int ParentId { get; set; }
-        ...
-        public List<User> Users { get; set; }        
-        public List<Order> Orders { get; set; }
-    }
+[Table("user")]
+public class User
+{
+    ···
+    public int Id { get; set; }
+    public int ParentId { get; set; }
+    ...
+    public List<User> Users { get; set; }        
+    public List<Order> Orders { get; set; }
+}
 ```
 ```C#
 IEnumerable<User> result = vdb.Select<User, Order>((u, o) => new { u.Id, u.ParentId, u.Name, u.ShowOrder, o.Product })
@@ -1007,52 +1033,52 @@ var result = query.GetData().CopyTo<User, UserDto>();
 |`[Required]`|指定数据字段值是必需的。<br>使用示例：`[Required]`<br>命名空间：System.ComponentModel.DataAnnotations|
 ##### 使用示例
 ```C#
+/// <summary>
+/// 用户
+/// </summary>
+[Table("user")]
+public class User
+{
+    [Column(Order = 0)]
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public int Id { get; set; }
+
+    [Required]
+    [Description("姓名。")]
+    [Column("name", TypeName = "varchar(50)")]
+    public string? Name { get; set; }
+
+    [Description("年龄。")]
+    public int? Age { get; set; }
+
+    [Required]
+    [DefaultValue(0)]
+    [Description("显示顺序。")]
+    public int? ShowOrder { get; set; }
+
     /// <summary>
-    /// 用户
+    /// 用户类型。
     /// </summary>
-    [Table("user")]
-    public class User
-    {
-        [Column(Order = 0)]
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int Id { get; set; }
+    public UserType? UserType { get; set; }
 
-        [Required]
-        [Description("姓名。")]
-        [Column("name", TypeName = "varchar(50)")]
-        public string? Name { get; set; }
+    /// <summary>
+    /// 订单列表。
+    /// </summary>
+    public List<Order>? Orders { get; set; } = new List<Order>();
 
-        [Description("年龄。")]
-        public int? Age { get; set; }
+    [Required]
+    [DefaultValue(0)]
+    [Description("是否逻辑删除。")]
+    public bool IsDeleted { get; set; }
 
-        [Required]
-        [DefaultValue(0)]
-        [Description("显示顺序。")]
-        public int? ShowOrder { get; set; }
-
-        /// <summary>
-        /// 用户类型。
-        /// </summary>
-        public UserType? UserType { get; set; }
-
-        /// <summary>
-        /// 订单列表。
-        /// </summary>
-        public List<Order>? Orders { get; set; } = new List<Order>();
-
-        [Required]
-        [DefaultValue(0)]
-        [Description("是否逻辑删除。")]
-        public bool IsDeleted { get; set; }
-
-        [Column(TypeName = "timestamp")]
-        [Required]
-        [DefaultValue("CURRENT_TIMESTAMP")]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        [Description("创建时间。")]
-        public DateTime? CreateTime { get; set; }
-    }
+    [Column(TypeName = "timestamp")]
+    [Required]
+    [DefaultValue("CURRENT_TIMESTAMP")]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    [Description("创建时间。")]
+    public DateTime? CreateTime { get; set; }
+}
 ```
 1. 没有设置`[Column]`标签的属性，会根据数据库品牌，用属性名生成相应形式的列名，也会根据属性的数据类型生成相应的列类型及默认最大长度。
 1. `[Key]`标识的属性映射为必填主键字段，无需对同一个属性再次添加`[Required]`特性。
@@ -1123,7 +1149,7 @@ codeTool.Language = ProgrammingLanguage.CSharp; //如不指定则使用C#。
 |`Types`|根据数据表名称生成相应的类名|`string[]`|无|
 ##### 根据数据表结构生成model代码并保存至文件
 ```C#
-var result1 = codeTool.GenerateModel().ToFile();
+var result = codeTool.GenerateModel().ToFile();
 ```
 |CreateModel 的参数|说明|类型|默认值|
 |-|-|-|-|
@@ -1132,15 +1158,23 @@ var result1 = codeTool.GenerateModel().ToFile();
 |`ignoredColumns`|需要忽略的列|`string[]`|无|
 ##### 根据数据表结构生成repository接口代码并保存至文件
 ```C#
-var result2 = codeTool.CreateIRepository().ToFile();
+var result = codeTool.CreateIRepository().ToFile();
 ```
 |CreateIRepository 的参数|说明|类型|默认值|
 |-|-|-|-|
 |`nameSpace`|命名空间|`string`|当前项目名称|
 |`baseTypes`|基类或接口|`string[]`|无|
+##### 根据数据表结构生成实体repository接口代码并保存至文件
+```C#
+var result = codeTool.CreateIEntityRepository().ToFile();
+```
+|CreateIEntityRepository 的参数|说明|类型|默认值|
+|-|-|-|-|
+|`nameSpace`|命名空间|`string`|当前项目名称|
+|`baseTypes`|基类或接口|`string[]`|无|
 ##### 根据数据表结构生成repository代码并保存至文件
 ```C#
-var result3 = codeTool.CreateRepository().ToFile();
+var result = codeTool.CreateRepository().ToFile();
 ```
 |CreateRepository 的参数|说明|类型|默认值|
 |-|-|-|-|
@@ -1148,7 +1182,19 @@ var result3 = codeTool.CreateRepository().ToFile();
 |`baseTypes`|基类或接口|`string[]`|无|
 ##### 根据数据表结构生成IoC注册代码并进行依赖注入
 ```C#
-var result4 = codeTool.RegisterIoC(nameof(conn)).InsertFile();
+var result = codeTool.RegisterIoC(nameof(_connString)).InsertFile();
+```
+执行该命令将在`Program.cs`中的`var app = builder.Build();`语句之前插入在IoC容器中注册VDB的语句以及根据数据表生成的IoC容器注册语句。例如：
+```C#
+public static void Main(string[] args)
+{
+    ...
+    builder.Services.AddScoped<Voy.DALBase.Interfaces.IVDB, Voy.DALBase.VDB>(r => new VDB(new MySqlConnection(_connString)));
+    builder.Services.AddScoped<IUserRepository, UserRepository>();
+    builder.Services.AddScoped<IUserSettingRepository, UserSettingRepository>();
+    var app = builder.Build();
+    ...
+}
 ```
 |RegisterIoC 的参数|说明|类型|默认值|
 |-|-|-|-|
