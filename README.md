@@ -536,34 +536,42 @@ codeTool.Language = ProgrammingLanguage.CSharp; //If not specified, C# will be u
 |`Types`|Generate the corresponding class name based on the data table name|`string[]`|None|
 ##### Generate model code based on data table structure and save it to a file
 ```C#
-var result = codeTool.CreateModel().ToFile();
+var result = codeTool.GenerateModel().ToFile();
 ```
-|Parameters of CreateModel|Description|Type|Default value|
+|Parameters of GenerateModel|Description|Type|Default value|
 |-|-|-|-|
 |`nameSpace`|Namespace|`string`|Current project name|
 |`baseTypes`|Base class or interface|`string[]`|None|
 |`ignoredColumns`|Columns to be ignored|`string[]`|None|
-##### Generate repository interface code based on data table structure and save it to a file
+##### Generate repository interface code with defined common methods and save it to a file
 ```C#
-var result = codeTool.CreateIRepository().ToFile();
+var result = codeTool.GenerateIRepository().ToFile();
 ```
-|Parameters of CreateIRepository|Description|Type|Default value|
+|Parameters of GenerateIRepository|Description|Type|Default value|
 |-|-|-|-|
 |`nameSpace`|Namespace|`string`|Current project name|
 |`baseTypes`|Base class or interface|`string[]`|None|
 ##### Generate entity repository interface code based on data table structure and save it to a file
 ```C#
-var result = codeTool.CreateIEntityRepository().ToFile();
+var result = codeTool.GenerateIEntityRepository().ToFile();
 ```
-|Parameters of CreateIEntityRepository|Description|Type|Default value|
+|Parameters of GenerateIEntityRepository|Description|Type|Default value|
 |-|-|-|-|
 |`nameSpace`|Namespace|`string`|Current project name|
 |`baseTypes`|Base class or interface|`string[]`|None|
+##### Generate repository code that implements common methods in IRepository and save it to a file
+```C#
+var result = codeTool.GenerateBaseRepository().ToFile();
+```
+|GenerateBaseRepository 的参数|说明|类型|默认值|
+|-|-|-|-|
+|`nameSpace`|命名空间|`string`|当前项目名称|
+|`baseTypes`|基类或接口|`string[]`|无|
 ##### Generate repository code based on data table structure and save it to a file
 ```C#
-var result = codeTool.CreateRepository().ToFile();
+var result = codeTool.GenerateRepository().ToFile();
 ```
-|Parameters of CreateRepository|Description|Type|Default value|
+|Parameters of GenerateRepository|Description|Type|Default value|
 |-|-|-|-|
 |`nameSpace`|Namespace|`string`|Current project name|
 |`baseTypes`|Base class or interface|`string[]`|None|
@@ -588,9 +596,9 @@ public static void Main(string[] args)
 |`dbConnectionName`|Name of database connection|`string`|None|
 ##### Generate WebAPIController code based on data table structure and save it to a file
 ```C#
-var result = codeTool.CreateWebAPIController().ToFile();
+var result = codeTool.GenerateWebAPIController().ToFile();
 ```
-|Parameters of CreateWebAPIController|Description|Type|Default value|
+|Parameters of GenerateWebAPIController|Description|Type|Default value|
 |-|-|-|-|
 |`nameSpace`|Namespace|`string`|Current project name|
 |`baseTypes`|Base class or interface|`string[]`|None|
@@ -1156,27 +1164,35 @@ var result = codeTool.GenerateModel().ToFile();
 |`nameSpace`|命名空间|`string`|当前项目名称|
 |`baseTypes`|基类或接口|`string[]`|无|
 |`ignoredColumns`|需要忽略的列|`string[]`|无|
-##### 根据数据表结构生成repository接口代码并保存至文件
+##### 生成含有定义共有方法的repository接口代码并保存至文件
 ```C#
-var result = codeTool.CreateIRepository().ToFile();
+var result = codeTool.GenerateIRepository().ToFile();
 ```
-|CreateIRepository 的参数|说明|类型|默认值|
+|GenerateIRepository 的参数|说明|类型|默认值|
 |-|-|-|-|
 |`nameSpace`|命名空间|`string`|当前项目名称|
 |`baseTypes`|基类或接口|`string[]`|无|
 ##### 根据数据表结构生成实体repository接口代码并保存至文件
 ```C#
-var result = codeTool.CreateIEntityRepository().ToFile();
+var result = codeTool.GenerateIEntityRepository().ToFile();
 ```
-|CreateIEntityRepository 的参数|说明|类型|默认值|
+|GenerateIEntityRepository 的参数|说明|类型|默认值|
+|-|-|-|-|
+|`nameSpace`|命名空间|`string`|当前项目名称|
+|`baseTypes`|基类或接口|`string[]`|无|
+##### 生成实现了IRepository中共有方法的repository代码并保存至文件
+```C#
+var result = codeTool.GenerateBaseRepository().ToFile();
+```
+|GenerateBaseRepository 的参数|说明|类型|默认值|
 |-|-|-|-|
 |`nameSpace`|命名空间|`string`|当前项目名称|
 |`baseTypes`|基类或接口|`string[]`|无|
 ##### 根据数据表结构生成repository代码并保存至文件
 ```C#
-var result = codeTool.CreateRepository().ToFile();
+var result = codeTool.GenerateRepository().ToFile();
 ```
-|CreateRepository 的参数|说明|类型|默认值|
+|GenerateRepository 的参数|说明|类型|默认值|
 |-|-|-|-|
 |`nameSpace`|命名空间|`string`|当前项目名称|
 |`baseTypes`|基类或接口|`string[]`|无|
@@ -1201,9 +1217,9 @@ public static void Main(string[] args)
 |`dbConnectionName`|数据连接名称|`string`|无|
 ##### 根据数据表结构生成WebAPIController代码并保存至文件
 ```C#
-var result5 = codeTool.CreateWebAPIController().ToFile();
+var result5 = codeTool.GenerateWebAPIController().ToFile();
 ```
-|CreateWebAPIController 的参数|说明|类型|默认值|
+|GenerateWebAPIController 的参数|说明|类型|默认值|
 |-|-|-|-|
 |`nameSpace`|命名空间|`string`|当前项目名称|
 |`baseTypes`|基类或接口|`string[]`|无|
