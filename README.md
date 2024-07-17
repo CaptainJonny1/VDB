@@ -296,7 +296,7 @@ IEnumerable<User> result = vdb.Select<User, Order>()
      .GetData();
 ```
 ##### Multi-column query
-Setting the second parameter `filterColumns` of the Where method to a new expression can achieve a more convenient multi-column query, so that the filtering conditions can be applied to all columns specified in the expression. For example:
+Setting the second parameter `queryColumns` of the Where method to a new expression can achieve a more convenient multi-column query, so that the filtering conditions can be applied to all columns specified in the expression. For example:
 ```C#
 IEnumerable<User> result = vdb.Select<User, Order>()
      .Where(u => u.Name.Contains("Tianjin"), u => new { u.Name, u.Introduction })
@@ -917,7 +917,7 @@ IEnumerable<User> result = vdb.Select<User, Order>()
     .GetData();
 ```
 ##### 多列查询
-将Where方法的第二个参数`filterColumns`设置为new表达式可以实现更方便的多列查询，这样可以将过滤条件应用到表达式中指定的全部列。例如：
+将Where方法的第二个参数`queryColumns`设置为new表达式可以实现更方便的多列查询，这样可以将过滤条件应用到表达式中指定的全部列。例如：
 ```C#
 IEnumerable<User> result = vdb.Select<User, Order>()
     .Where(u => u.Name.Contains("天津"), u => new { u.Name, u.Introduction })
