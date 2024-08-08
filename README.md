@@ -538,6 +538,18 @@ codeTool.Language = ProgrammingLanguage.CSharp; //If not specified, C# will be u
 ```C#
 var result = codeTool.GenerateModel().ToFile();
 ```
++ If the column name ends with "Id" (regardless of case limit) and the characters in front of "Id" are the name of another table, the column name is judged to be a foreign key, and a reference navigation property will be added to the model.
++ Other tables with a similar current table name (one more "_" separator than the current table name, and no more than 3 characters before the first delimiter) will have a collection navigation property added based on their table name.
+
+|Parameters of GenerateModel|Description|Type|Default value|
+|-|-|-|-|
+|`nameSpace`|Namespace|`string`|Current project name|
+|`baseTypes`|Base class or interface|`string[]`|None|
+|`ignoredColumns`|Columns to be ignored|`string[]`|None|
+##### Generate model code for DTO based on data table structure and save it to a file
+```C#
+var result = codeTool.GenerateModelForDTO().ToFile();
+```
 |Parameters of GenerateModel|Description|Type|Default value|
 |-|-|-|-|
 |`nameSpace`|Namespace|`string`|Current project name|
@@ -559,14 +571,16 @@ var result = codeTool.GenerateIEntityRepository().ToFile();
 |-|-|-|-|
 |`nameSpace`|Namespace|`string`|Current project name|
 |`baseTypes`|Base class or interface|`string[]`|None|
+|`inheritDefaultTypes`|Indicates whether you want to inherit the default base type in addition to the base type entered by the user|`bool`|true|
 ##### Generate repository code that implements common methods in IRepository and save it to a file
 ```C#
 var result = codeTool.GenerateBaseRepository().ToFile();
 ```
-|GenerateBaseRepository 的参数|说明|类型|默认值|
+|Parameters of GenerateBaseRepository|Description|Type|Default value|
 |-|-|-|-|
-|`nameSpace`|命名空间|`string`|当前项目名称|
-|`baseTypes`|基类或接口|`string[]`|无|
+|`nameSpace`|Namespace|`string`|Current project name|
+|`baseTypes`|Base class or interface|`string[]`|None|
+|`inheritDefaultTypes`|Indicates whether you want to inherit the default base type in addition to the base type entered by the user|`bool`|true|
 ##### Generate repository code based on data table structure and save it to a file
 ```C#
 var result = codeTool.GenerateRepository().ToFile();
@@ -575,6 +589,8 @@ var result = codeTool.GenerateRepository().ToFile();
 |-|-|-|-|
 |`nameSpace`|Namespace|`string`|Current project name|
 |`baseTypes`|Base class or interface|`string[]`|None|
+|`inheritDefaultTypes`|Indicates whether you want to inherit the default base type in addition to the base type entered by the user|`bool`|true|
+|`haveIoCServiceAttribute`|Indicates whether the IoCService attribute is included|`bool`|false|
 ##### Generate IoC registration code and perform dependency injection based on data table structure
 ```C#
 var result = codeTool.RegisterIoC(nameof(_connString)).InsertFile();
@@ -594,6 +610,7 @@ public static void Main(string[] args)
 |Parameters of RegisterIoC|Description|Type|Default value|
 |-|-|-|-|
 |`dbConnectionName`|Name of database connection|`string`|None|
+|`mode`|RegisterMode（Iteration Or Detail）|`RegisterIoCMode`|Iteration|
 ##### Generate WebAPIController code based on data table structure and save it to a file
 ```C#
 var result = codeTool.GenerateWebAPIController().ToFile();
@@ -1159,6 +1176,18 @@ codeTool.Language = ProgrammingLanguage.CSharp; //如不指定则使用C#。
 ```C#
 var result = codeTool.GenerateModel().ToFile();
 ```
++ 如果列名以“Id”（不限大小写）结尾且“Id”前面的字符是另一个表的名字，则判断为外键，将在Model中添加引用导航属性。
++ 与当前表名称相近（比当前表名多一个“_”分隔符，并且第一个分隔符前面的字符长度3个以内）的其他表，将根据其表名添加集合导航属性。
+
+|CreateModel 的参数|说明|类型|默认值|
+|-|-|-|-|
+|`nameSpace`|命名空间|`string`|当前项目名称|
+|`baseTypes`|基类或接口|`string[]`|无|
+|`ignoredColumns`|需要忽略的列|`string[]`|无|
+##### 根据数据表结构生成用于DTO的model代码并保存至文件
+```C#
+var result = codeTool.GenerateModelForDTO().ToFile();
+```
 |CreateModel 的参数|说明|类型|默认值|
 |-|-|-|-|
 |`nameSpace`|命名空间|`string`|当前项目名称|
@@ -1179,7 +1208,9 @@ var result = codeTool.GenerateIEntityRepository().ToFile();
 |GenerateIEntityRepository 的参数|说明|类型|默认值|
 |-|-|-|-|
 |`nameSpace`|命名空间|`string`|当前项目名称|
+|`nameSpaceImportsForModels`|为了使用Models而引用的命名空间|`string`|无|
 |`baseTypes`|基类或接口|`string[]`|无|
+|`inheritDefaultTypes`|指示除了继承用户输入的基类型，是否还要继承预设的基类型|`bool`|true|
 ##### 生成实现了IRepository中共有方法的repository代码并保存至文件
 ```C#
 var result = codeTool.GenerateBaseRepository().ToFile();
@@ -1187,7 +1218,9 @@ var result = codeTool.GenerateBaseRepository().ToFile();
 |GenerateBaseRepository 的参数|说明|类型|默认值|
 |-|-|-|-|
 |`nameSpace`|命名空间|`string`|当前项目名称|
+|`nameSpaceImportsForIRepositories`|为了使用IRepositories而引用的命名空间|`string`|无|
 |`baseTypes`|基类或接口|`string[]`|无|
+|`inheritDefaultTypes`|指示除了继承用户输入的基类型，是否还要继承预设的基类型|`bool`|true|
 ##### 根据数据表结构生成repository代码并保存至文件
 ```C#
 var result = codeTool.GenerateRepository().ToFile();
@@ -1195,7 +1228,11 @@ var result = codeTool.GenerateRepository().ToFile();
 |GenerateRepository 的参数|说明|类型|默认值|
 |-|-|-|-|
 |`nameSpace`|命名空间|`string`|当前项目名称|
+|`nameSpaceImportsForIRepositories`|为了使用IRepositories而引用的命名空间|`string`|无|
+|`nameSpaceImportsForModels`|为了使用Models而引用的命名空间|`string`|无|
 |`baseTypes`|基类或接口|`string[]`|无|
+|`inheritDefaultTypes`|指示除了继承用户输入的基类型，是否还要继承预设的基类型|`bool`|true|
+|`haveIoCServiceAttribute`|指示是否包含IoCService标签|`bool`|false|
 ##### 根据数据表结构生成IoC注册代码并进行依赖注入
 ```C#
 var result = codeTool.RegisterIoC(nameof(_connString)).InsertFile();
@@ -1215,6 +1252,7 @@ public static void Main(string[] args)
 |RegisterIoC 的参数|说明|类型|默认值|
 |-|-|-|-|
 |`dbConnectionName`|数据连接名称|`string`|无|
+|`mode`|注册模式（迭代或明细）|`RegisterIoCMode`|Iteration|
 ##### 根据数据表结构生成WebAPIController代码并保存至文件
 ```C#
 var result5 = codeTool.GenerateWebAPIController().ToFile();
