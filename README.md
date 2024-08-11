@@ -373,6 +373,40 @@ IEnumerable<User> result = vdb.Select<User>()
 |-|-|-|:-:|
 |`If()`|If the judgment condition is true, return the first value after ?, otherwise return the second value. |Lambda expression, returns properties for the result mapping (optional) (optional) |∞|
 |`IfNull()`|If the judgment object is empty, the value after ?? will be returned. |Lambda expression|∞|
+
+##### Query the values in the JSON column
++ If you use a Class parameter in the new expression parameter of the Select method, VDB will consider that the Json field needs to be queried. The returned model needs to have an property with the same name as the Json path (the path delimiter is "_") as the data sink.
++ If you specify the property of the class, the query result will be the value of the specified key, and if the property is not specified, the Json content in the entire field will be queried.
++ If a collection is stored in the Json field, you need to specify the index value of the collection when querying the value of a key.
+You can also use the key value in the Json field as a filter condition in the + Where statement.
+```C#
+public class Order
+{
+        public int Id { get; set; }
+        public decimal Price { get; set; }
+        ...
+        [Column("creation_env", TypeName="json")]
+        public CreationEnv CreationEnv { get; set; }
+        public string? CreationEnv_IP { get; set; }
+        public string? CreationEnv_OS { get; set; }
+}
+```
+```C#
+    public class CreationEnv
+    {
+        [Column("ip", TypeName = "string")]
+        public string? IP { get; set; }
+        public string? OS { get; set; }
+    }
+```
+```C#
+var query = vdb.Select<User, Order>((u, o) => 
+    new { u.Id, u.Name, o.Price, o.CreationEnv.IP, o.CreationEnv.OS })
+    .LeftJoin((u, o) => u.Id == o.UserId)
+    .Where((u, o) => o.CreationEnv.IP == "192.168.0.100")
+    .GetData();
+```
+
 ##### Organize query result
 ######  Recursive query results are organized into an ordered set
 Using the extension method "ToListByParent()" of the DataTool class in the Voy.DALBase.Tools namespace, the results of an upward recursive query can be converted into an ordered result set. For example:
@@ -534,6 +568,20 @@ codeTool.Language = ProgrammingLanguage.CSharp; //If not specified, C# will be u
 |`Language`|The programming language used to generate content|`ProgrammingLanguage`|CSharp|
 |`Tables`|Name of data table|`string[]`|All tables|
 |`Types`|Generate the corresponding class name based on the data table name|`string[]`|None|
+
+|Method of CodeTool|Description|
+|-|-|
+|GenerateModel|Generate the code for Model|
+|GenerateModelForDTO|Generate the code for DTOModel|
+|GenerateIRepository|Generate the code for IRepository|
+|GenerateIEntityRepository|Generate the code for IEntityRepository|
+|GenerateBaseRepository|Generate the code for BaseRepository|
+|GenerateRepository|Generate the code for Repository|
+|GenerateIService|Generate the code for IService|
+|GenerateService|Generate the code for Service|
+|RegisterIoC|Generate the code for Repository|
+|GenerateWebAPIController|Generate the code for WebAPIController|
+
 ##### Generate model code based on data table structure and save it to a file
 ```C#
 var result = codeTool.GenerateModel().ToFile();
@@ -1011,6 +1059,38 @@ IEnumerable<User> result = vdb.Select<User>()
 |-|-|-|:-:|
 |`If()`|判断条件如果为真，则返回?后面的第一个值，否则返回第二个值。|Lambda表达式，返回结果映射的属性（可选）|∞|
 |`IfNull()`|判断对象如果为空，则返回??后面的值。|Lambda表达式|∞|
+##### 查询json列中的值
++ 在Select方法的new表达式参数中使用Class类型的参数，VDB会认为需要查询Json类型的字段。返回的Model中需要有与Json路径同名（路径的分隔符为“_”）的属性作为数据接收器。
++ 指定该Class的属性则查询结果为指定键的值，如不指定属性则将查询整个字段内的Json内容。
++ 如果Json字段中保存的是集合，查询某个键的值时需要指定集合的索引值。
++ Where语句中也可以使用Json字段中的键值作为筛选条件。
+```C#
+public class Order
+{
+        public int Id { get; set; }
+        public decimal Price { get; set; }
+        ...
+        [Column("creation_env", TypeName="json")]
+        public CreationEnv CreationEnv { get; set; }
+        public string? CreationEnv_IP { get; set; }
+        public string? CreationEnv_OS { get; set; }
+}
+```
+```C#
+    public class CreationEnv
+    {
+        [Column("ip", TypeName = "string")]
+        public string? IP { get; set; }
+        public string? OS { get; set; }
+    }
+```
+```C#
+var query = vdb.Select<User, Order>((u, o) => 
+    new { u.Id, u.Name, o.Price, o.CreationEnv.IP, o.CreationEnv.OS })
+    .LeftJoin((u, o) => u.Id == o.UserId)
+    .Where((u, o) => o.CreationEnv.IP == "192.168.0.100")
+    .GetData();
+```
 ##### 查询结果整理
 ###### 递归查询结果整理为有序集合
 使用Voy.DALBase.Tools命名空间中DataTool类的扩展方法“ToListByParent()”，可以将向上递归查询的结果转化为有序结果集。例如：
@@ -1172,6 +1252,20 @@ codeTool.Language = ProgrammingLanguage.CSharp; //如不指定则使用C#。
 |`Language`|生成内容使用的编程语言|`ProgrammingLanguage`|CSharp|
 |`Tables`|数据表的名称|`string[]`|全部表|
 |`Types`|根据数据表名称生成相应的类名|`string[]`|无|
+
+|CodeTool 的方法|说明|
+|-|-|
+|GenerateModel|生成Model代码|
+|GenerateModelForDTO|生成DTO的Model代码|
+|GenerateIRepository|生成IRepository代码|
+|GenerateIEntityRepository|生成IEntityRepository代码|
+|GenerateBaseRepository|生成BaseRepository代码|
+|GenerateRepository|生成Repository代码|
+|GenerateIService|生成IService代码|
+|GenerateService|生成Service代码|
+|RegisterIoC|生成Repository代码|
+|GenerateWebAPIController|生成WebAPIController代码|
+
 ##### 根据数据表结构生成model代码并保存至文件
 ```C#
 var result = codeTool.GenerateModel().ToFile();
@@ -1188,6 +1282,8 @@ var result = codeTool.GenerateModel().ToFile();
 ```C#
 var result = codeTool.GenerateModelForDTO().ToFile();
 ```
++ 生成名称以“DTO”结尾，无特性标签的Model。
+
 |CreateModel 的参数|说明|类型|默认值|
 |-|-|-|-|
 |`nameSpace`|命名空间|`string`|当前项目名称|
