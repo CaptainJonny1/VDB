@@ -613,8 +613,10 @@ var result = codeTool.GenerateIEntityRepository().ToFile();
 |Parameters of GenerateIEntityRepository|Description|Type|Default value|
 |-|-|-|-|
 |`nameSpace`|Namespace|`string`|Current project name|
+|`nameSpaceImportsForModels`|NameSpace Imports For Model|`string`|None|
 |`baseTypes`|Base class or interface|`string[]`|None|
 |`inheritDefaultTypes`|Indicates whether you want to inherit the default base type in addition to the base type entered by the user|`bool`|true|
+|`removePrefix`|Remove the prefix of the data table name. For example: Beats, Dick, Rael, etc.|`bool`|`false`|
 ##### Generate repository code that implements common methods in IRepository and save it to a file
 ```C#
 var result = codeTool.GenerateBaseRepository().ToFile();
@@ -633,7 +635,32 @@ var result = codeTool.GenerateRepository().ToFile();
 |`nameSpace`|Namespace|`string`|Current project name|
 |`baseTypes`|Base class or interface|`string[]`|None|
 |`inheritDefaultTypes`|Indicates whether you want to inherit the default base type in addition to the base type entered by the user|`bool`|true|
+|`removePrefix`|Remove the prefix of the data table name. For example: Beats, Dick, Rael, etc.|`bool`|`false`|
 |`haveIoCServiceAttribute`|Indicates whether the IoCService attribute is included|`bool`|false|
+##### Generate service interface code based on data table structure and save it to a file
+```C#
+var result = codeTool.GenerateIService().ToFile();
+```
+|Parameters of GenerateIService|Description|Type|Default value|
+|-|-|-|-|
+|`nameSpace`|Namespace|`string`|Current project name|
+|`nameSpaceImportsForModel`|NameSpace Imports For Model|`string`|None|
+|`baseTypes`|Base class or interface|`string[]`|None|
+|`removePrefix`|Remove the prefix of the data table name. For example: Beats, Dick, Rael, etc.|`bool`|`false`|
+|`suffixOfEntityName`|Suffix Of Entity Name|`bool`|false|
+##### Generate the service code that implements the method in IService and save it to a file
+```C#
+var result = codeTool.GenerateService().ToFile();
+```
+|Parameters of GenerateService|Description|Type|Default value|
+|-|-|-|-|
+|`nameSpace`|Namespace|`string`|Current project name|
+|`nameSpaceImportsForModel`|NameSpace Imports For Model|`string`|None|
+|`nameSpaceImportsForDTO`|NameSpace Imports For DTO|`string`|None|
+|`baseTypes`|Base class or interface|`string[]`|None|
+|`inheritDefaultTypes`|Indicates whether you want to inherit the default base type in addition to the base type entered by the user|`bool`|true|
+|`removePrefix`|Remove the prefix of the data table name. For example: Beats, Dick, Rael, etc.|`bool`|`false`|
+|`suffixOfEntityName`|Suffix Of Entity Name|`bool`|false|
 ##### Generate IoC registration code and perform dependency injection based on data table structure
 ```C#
 var result = codeTool.RegisterIoC(nameof(_connString)).InsertFile();
@@ -1269,13 +1296,13 @@ var result = codeTool.GenerateModel().ToFile();
 
 |CreateModel 的参数|说明|类型|默认值|
 |-|-|-|-|
-|`nameSpace`|命名空间。|`string`|当前项目名称|
-|`baseTypes`|基类或接口。|`string[]`|无|
+|`nameSpace`|命名空间|`string`|当前项目名称|
+|`baseTypes`|基类或接口|`string[]`|无|
 |`removePrefix`|删除数据表名的前缀。例如：biz、dic、rel等。|`bool`|`false`|
 |`suffix`|类名的后缀。例如：DTO、PO、VO等。|`string`|无|
-|`withDataAnnotations`|具有数据注释。|`bool`|`true`|
-|`withReferenceNavigations`|具有引用导航属性。|`bool`|`true`|
-|`withCollectionNavigations`|具有集合导航属性。|`bool`|`true`|
+|`withDataAnnotations`|具有数据注释|`bool`|`true`|
+|`withReferenceNavigations`|具有引用导航属性|`bool`|`true`|
+|`withCollectionNavigations`|具有集合导航属性|`bool`|`true`|
 |`ignoredColumns`|需要忽略的列。|`string[]`|无|
 ##### 生成含有定义共有方法的repository接口代码并保存至文件
 ```C#
@@ -1292,9 +1319,10 @@ var result = codeTool.GenerateIEntityRepository().ToFile();
 |GenerateIEntityRepository 的参数|说明|类型|默认值|
 |-|-|-|-|
 |`nameSpace`|命名空间|`string`|当前项目名称|
-|`nameSpaceImportsForModels`|为了使用Models而引用的命名空间|`string`|无|
+|`nameSpaceImportsForModels`|Models的命名空间|`string`|无|
 |`baseTypes`|基类或接口|`string[]`|无|
 |`inheritDefaultTypes`|指示除了继承用户输入的基类型，是否还要继承预设的基类型|`bool`|true|
+|`removePrefix`|删除数据表名的前缀。例如：biz、dic、rel等。|`bool`|`false`|
 ##### 生成实现了IRepository中共有方法的repository代码并保存至文件
 ```C#
 var result = codeTool.GenerateBaseRepository().ToFile();
@@ -1302,7 +1330,7 @@ var result = codeTool.GenerateBaseRepository().ToFile();
 |GenerateBaseRepository 的参数|说明|类型|默认值|
 |-|-|-|-|
 |`nameSpace`|命名空间|`string`|当前项目名称|
-|`nameSpaceImportsForIRepositories`|为了使用IRepositories而引用的命名空间|`string`|无|
+|`nameSpaceImportsForIRepositories`|IRepositories的命名空间|`string`|无|
 |`baseTypes`|基类或接口|`string[]`|无|
 |`inheritDefaultTypes`|指示除了继承用户输入的基类型，是否还要继承预设的基类型|`bool`|true|
 ##### 根据数据表结构生成repository代码并保存至文件
@@ -1312,11 +1340,36 @@ var result = codeTool.GenerateRepository().ToFile();
 |GenerateRepository 的参数|说明|类型|默认值|
 |-|-|-|-|
 |`nameSpace`|命名空间|`string`|当前项目名称|
-|`nameSpaceImportsForIRepositories`|为了使用IRepositories而引用的命名空间|`string`|无|
-|`nameSpaceImportsForModels`|为了使用Models而引用的命名空间|`string`|无|
+|`nameSpaceImportsForIRepositories`|IRepositories的命名空间|`string`|无|
+|`nameSpaceImportsForModels`|Models的命名空间|`string`|无|
 |`baseTypes`|基类或接口|`string[]`|无|
 |`inheritDefaultTypes`|指示除了继承用户输入的基类型，是否还要继承预设的基类型|`bool`|true|
+|`removePrefix`|删除数据表名的前缀。例如：biz、dic、rel等。|`bool`|`false`|
 |`haveIoCServiceAttribute`|指示是否包含IoCService标签|`bool`|false|
+##### 根据数据表结构生成service接口代码并保存至文件
+```C#
+var result = codeTool.GenerateIService().ToFile();
+```
+|GenerateIService 的参数|说明|类型|默认值|
+|-|-|-|-|
+|`nameSpace`|命名空间。|`string`|当前项目名称|
+|`nameSpaceImportsForModel`|Model的命名空间|`string`|无|
+|`baseTypes`|基类或接口|`string[]`|无|
+|`removePrefix`|删除数据表名的前缀。例如：biz、dic、rel等。|`bool`|`false`|
+|`suffixOfEntityName`|实体名的后缀|`bool`|false|
+##### 生成实现了IService中方法的service代码并保存至文件
+```C#
+var result = codeTool.GenerateService().ToFile();
+```
+|GenerateService 的参数|说明|类型|默认值|
+|-|-|-|-|
+|`nameSpace`|命名空间|`string`|当前项目名称|
+|`nameSpaceImportsForModel`|Model的命名空间|`string`|无|
+|`nameSpaceImportsForDTO`|DTO的命名空间|`string`|无|
+|`baseTypes`|基类或接口|`string[]`|无|
+|`inheritDefaultTypes`|指示除了继承用户输入的基类型，是否还要继承预设的基类型|`bool`|true|
+|`removePrefix`|删除数据表名的前缀。例如：biz、dic、rel等。|`bool`|`false`|
+|`suffixOfEntityName`|实体名的后缀|`bool`|false|
 ##### 根据数据表结构生成IoC注册代码并进行依赖注入
 ```C#
 var result = codeTool.RegisterIoC(nameof(_connString)).InsertFile();
