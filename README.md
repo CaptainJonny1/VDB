@@ -572,7 +572,6 @@ codeTool.Language = ProgrammingLanguage.CSharp; //If not specified, C# will be u
 |Method of CodeTool|Description|
 |-|-|
 |GenerateModel|Generate the code for Model|
-|GenerateModelForDTO|Generate the code for DTOModel|
 |GenerateIRepository|Generate the code for IRepository|
 |GenerateIEntityRepository|Generate the code for IEntityRepository|
 |GenerateBaseRepository|Generate the code for BaseRepository|
@@ -593,15 +592,11 @@ var result = codeTool.GenerateModel().ToFile();
 |-|-|-|-|
 |`nameSpace`|Namespace|`string`|Current project name|
 |`baseTypes`|Base class or interface|`string[]`|None|
-|`ignoredColumns`|Columns to be ignored|`string[]`|None|
-##### Generate model code for DTO based on data table structure and save it to a file
-```C#
-var result = codeTool.GenerateModelForDTO().ToFile();
-```
-|Parameters of GenerateModel|Description|Type|Default value|
-|-|-|-|-|
-|`nameSpace`|Namespace|`string`|Current project name|
-|`baseTypes`|Base class or interface|`string[]`|None|
+|`removePrefix`|Remove the prefix of the data table name. For example: Beats, Dick, Rael, etc.|`bool`|`false`|
+|`suffix`|The suffix of the class name. For example: Deto, broken, wo, etc.|`string`|None|
+|`withDataAnnotations`|With Data Annotations.|`bool`|`true`|
+|`withReferenceNavigations`|With Reference Navigations.|`bool`|`true`|
+|`withCollectionNavigations`|With Collection Navigations|`bool`|`true`|
 |`ignoredColumns`|Columns to be ignored|`string[]`|None|
 ##### Generate repository interface code with defined common methods and save it to a file
 ```C#
@@ -1256,7 +1251,6 @@ codeTool.Language = ProgrammingLanguage.CSharp; //如不指定则使用C#。
 |CodeTool 的方法|说明|
 |-|-|
 |GenerateModel|生成Model代码|
-|GenerateModelForDTO|生成DTO的Model代码|
 |GenerateIRepository|生成IRepository代码|
 |GenerateIEntityRepository|生成IEntityRepository代码|
 |GenerateBaseRepository|生成BaseRepository代码|
@@ -1275,20 +1269,14 @@ var result = codeTool.GenerateModel().ToFile();
 
 |CreateModel 的参数|说明|类型|默认值|
 |-|-|-|-|
-|`nameSpace`|命名空间|`string`|当前项目名称|
-|`baseTypes`|基类或接口|`string[]`|无|
-|`ignoredColumns`|需要忽略的列|`string[]`|无|
-##### 根据数据表结构生成用于DTO的model代码并保存至文件
-```C#
-var result = codeTool.GenerateModelForDTO().ToFile();
-```
-+ 生成名称以“DTO”结尾，无特性标签的Model。
-
-|CreateModel 的参数|说明|类型|默认值|
-|-|-|-|-|
-|`nameSpace`|命名空间|`string`|当前项目名称|
-|`baseTypes`|基类或接口|`string[]`|无|
-|`ignoredColumns`|需要忽略的列|`string[]`|无|
+|`nameSpace`|命名空间。|`string`|当前项目名称|
+|`baseTypes`|基类或接口。|`string[]`|无|
+|`removePrefix`|删除数据表名的前缀。例如：biz、dic、rel等。|`bool`|`false`|
+|`suffix`|类名的后缀。例如：DTO、PO、VO等。|`string`|无|
+|`withDataAnnotations`|具有数据注释。|`bool`|`true`|
+|`withReferenceNavigations`|具有引用导航属性。|`bool`|`true`|
+|`withCollectionNavigations`|具有集合导航属性。|`bool`|`true`|
+|`ignoredColumns`|需要忽略的列。|`string[]`|无|
 ##### 生成含有定义共有方法的repository接口代码并保存至文件
 ```C#
 var result = codeTool.GenerateIRepository().ToFile();
