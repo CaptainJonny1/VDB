@@ -1081,8 +1081,9 @@ IEnumerable<User> result = vdb.Select<User>()
 |-|-|-|:-:|
 |`If()`|判断条件如果为真，则返回?后面的第一个值，否则返回第二个值。|Lambda表达式，返回结果映射的属性（可选）|∞|
 |`IfNull()`|判断对象如果为空，则返回??后面的值。|Lambda表达式|∞|
-##### 查询json列中的值
-+ 在Select方法的new表达式参数中使用Class类型的参数，VDB会认为需要查询Json类型的字段。返回的Model中需要有与Json路径同名（路径的分隔符为“_”）的属性作为数据接收器。
+##### 查询json列或是ValueObject结构中的值
++ 在Select方法的new表达式参数中使用Class类型的参数，VDB会认为需要查询Json类型的字段或是ValueObject结构中的值。其区别在于该Class是否使用了`[Owned]`特性标签。
++ 当查询json列时，返回的Model中需要有与Json路径同名（路径的分隔符为“_”）的属性作为数据接收器。
 + 指定该Class的属性则查询结果为指定键的值，如不指定属性则将查询整个字段内的Json内容。
 + 如果Json字段中保存的是集合，查询某个键的值时需要指定集合的索引值。
 + Where语句中也可以使用Json字段中的键值作为筛选条件。
